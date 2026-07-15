@@ -57,6 +57,37 @@
     }
     ```
 
+## 技能關係圖 (Skill Map)
+
+```mermaid
+flowchart TD
+    U(["使用者：案情 / 契約 / 爭議"])
+    LB["legal-brainstorming<br/>案情梳理・釐清爭點・策略規劃"]
+    LR["legal-research<br/>法源檢索・引用驗證・廢棄判決防護"]
+    LG["legal-graph<br/>彙整為關係圖 superset JSON"]
+    CV["compliance-verification<br/>合約風險稽核・法規合規檢查"]
+    RN["renderer/index.html<br/>自包含 3D 互動關係圖"]
+    DB1[("dr-lawbot<br/>語意判例檢索")]
+    DB2[("taiwan-legal-db<br/>法規・判決・釋字")]
+
+    U --> LB
+    U -. 契約審查入口 .-> CV
+    LB --> LR
+    LR --> LG
+    LG -->|寫入 data.js| RN
+    LR -. 佐證法源 .-> CV
+    LR <-->|語意查詢| DB1
+    LR <-->|條文/判決| DB2
+    CV <-->|合規法源| DB2
+
+    subgraph MCP [本機 MCP 檢索工具]
+        DB1
+        DB2
+    end
+```
+
+> 訴訟／爭議走 `legal-brainstorming → legal-research → legal-graph` 主線；契約／合規案件可直接進 `compliance-verification`。兩條路徑的法源檢索都以本機 MCP 工具為後盾，並受引用驗證與廢棄判決防護約束（防幻覺）。
+
 ## 技能列表 (Skills)
 *   **`legal-brainstorming`**：案情分析與訴訟策略起草前腦力激盪。
 *   **`legal-research`**：指導 Agent 精準檢索台灣司法院判決與全國法規。
