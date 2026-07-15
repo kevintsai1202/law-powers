@@ -1,0 +1,7 @@
+# OS / 編輯器雜項
+.DS_Store
+Thumbs.db
+*.log
+
+# session / 開發暫存
+/superpowers/
