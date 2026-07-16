@@ -5,8 +5,8 @@
 ## 1. 檢索優先與防幻覺原則 (Search-First & Trust Gates)
 *   **硬性約束**：Agent 不得在無檢索數據支持的情況下，向使用者提供確定性的法律條文內容或司法判決要旨。
 *   **第一步行為**：任何法律事實的分析，都必須首先使用檢索工具進行資料查證，並依查詢意圖選擇工具：
-    *   **判例（找相關判例／論理）**：優先使用語意檢索 `dr-lawbot:search_bundle`。
-    *   **判例（已知字號或結構化過濾）**：使用 `taiwan-legal-db:search_judgments`。
+    *   **判例（找相關判例／論理）**：**雙軌並行**——同一回合同時呼叫語意檢索 `dr-lawbot:search_bundle` 與關鍵字檢索 `taiwan-legal-db:search_judgments`，再依 `legal-research` 技能的「合併去重規則」整合：以司法院 JID（語意軌 `doc_id` ＝ 關鍵字軌 `jid`）為去重鍵，重複判決保留資訊較完整（有理由書全文）的一筆，雙軌皆命中者排序最優先。
+    *   **判例（已知字號或結構化過濾）**：使用 `taiwan-legal-db:search_judgments`（精確定位，不需雙軌）。
     *   **法規條文**：使用 `taiwan-legal-db:search_regulations`、`get_pcode`、`query_regulation`。
     *   **釋字／憲法法庭裁判**：使用 `taiwan-legal-db:search_interpretations`、`get_interpretation`。
 *   **信任閘門 (Trust Gate)**：若檢索工具未能找到關聯的法條或判決，Agent 應啟動信任閘門，誠實告知「查無直接對應之官方文獻」，嚴禁憑空捏造或假定不存在的法規。
@@ -47,7 +47,7 @@
           "command": "mcp-taiwan-legal-db"
         }
         ```
-4.  **註冊語意檢索引擎 `dr-lawbot`（Remote MCP，判例語意檢索預設引擎，必須一併安裝）**：
+4.  **註冊語意檢索引擎 `dr-lawbot`（Remote MCP，判例雙軌檢索之語意軌，必須一併安裝）**：
     *   **Claude Code**：
         ```bash
         claude mcp add --transport http dr-lawbot https://tlr.dr-lawbot.com/mcp --scope user
