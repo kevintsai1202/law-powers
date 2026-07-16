@@ -99,6 +99,11 @@ async function verifyProfile(browser, profile) {
 
   assert.match(await page.title(), /law-powers/, `${profile.id}: 頁面標題缺少專案名稱`);
   assert.match(await page.locator("main #top h1").innerText(), /每一句依據/, `${profile.id}: Hero 主標不存在`);
+  assert.equal(
+    (await page.locator("#install-command").innerText()).trim(),
+    "npx skills add kevintsai1202/law-powers -g --all",
+    `${profile.id}: 安裝指令未使用 Skills CLI`,
+  );
   const heroImage = page.locator('.hero-visual img');
   assert.ok(await heroImage.isVisible(), `${profile.id}: Hero 圖片不可見`);
   assert.ok(await heroImage.evaluate((image) => image.complete && image.naturalWidth > 0), `${profile.id}: Hero 圖片載入失敗`);
