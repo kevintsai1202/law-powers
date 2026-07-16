@@ -37,9 +37,14 @@
         }
         ```
 
-### 語意判例檢索引擎（dr-lawbot，預設引擎；未安裝可降級）
+### 語意判例檢索引擎（dr-lawbot，雙軌檢索之語意軌；未安裝時降級為關鍵字單軌）
 
-判例的語意檢索預設走 `dr-lawbot` Remote MCP（開源專案 [tw-legal-rag](https://github.com/aa0101181514/tw-legal-rag) 的官方託管介面，連線約 2,200 萬筆台灣裁判）。未安裝時技能會退回關鍵字檢索，但相關判例的檢索涵蓋較差。
+從案情尋找相關判例與裁判論理時，`legal-research` 預設在同一回合並行執行兩條檢索路徑：
+
+*   **語意軌（重召回）**：`dr-lawbot:search_bundle`（`search_type=hybrid`、`read_top=3`），使用自然語言案情搜尋相關判例。`dr-lawbot` 是開源專案 [tw-legal-rag](https://github.com/aa0101181514/tw-legal-rag) 的官方 Remote MCP 介面，連線約 2,200 萬筆台灣裁判。
+*   **關鍵字軌（重精確）**：先將口語案情轉換成台灣法律專業用語，再呼叫 `taiwan-legal-db:search_judgments`。
+
+兩軌結果會優先以司法院 JID 合併去重；同一判決若兩軌皆命中，會優先排序。若 `dr-lawbot` 未安裝或暫時無法使用，技能不會中止，而會降級為 `taiwan-legal-db:search_judgments` 關鍵字單軌，並提示語意檢索未啟用。已知確切案號或需要依法院、年度、案類精確過濾時，則直接使用關鍵字／結構化檢索，不必啟動雙軌。
 
 *   **Claude Code**：
 
@@ -63,12 +68,12 @@
 flowchart TD
     U(["使用者：案情 / 契約 / 爭議"])
     LB["legal-brainstorming<br/>案情梳理・釐清爭點・策略規劃"]
-    LR["legal-research<br/>法源檢索・引用驗證・廢棄判決防護"]
-    LG["legal-graph<br/>彙整為關係圖 superset JSON"]
+    LR["legal-research<br/>雙軌判例檢索・合併去重・引用驗證"]
+    LG["legal-graph<br/>彙整為關係圖 superset JSON・契約義務模型"]
     CV["compliance-verification<br/>合約風險稽核・法規合規檢查"]
     RN["renderer/index.html<br/>自包含 3D 互動關係圖"]
-    DB1[("dr-lawbot<br/>語意判例檢索")]
-    DB2[("taiwan-legal-db<br/>法規・判決・釋字")]
+    DB1[("dr-lawbot<br/>search_bundle 語意軌")]
+    DB2[("taiwan-legal-db<br/>search_judgments 關鍵字軌<br/>法規・判決・釋字")]
 
     U --> LB
     U -. 契約審查入口 .-> CV
@@ -76,8 +81,8 @@ flowchart TD
     LR --> LG
     LG -->|寫入 data.js| RN
     LR -. 佐證法源 .-> CV
-    LR <-->|語意查詢| DB1
-    LR <-->|條文/判決| DB2
+    LR <-->|語意軌| DB1
+    LR <-->|關鍵字軌／法源原文| DB2
     CV <-->|合規法源| DB2
 
     subgraph MCP [本機 MCP 檢索工具]
@@ -86,17 +91,28 @@ flowchart TD
     end
 ```
 
-> 訴訟／爭議走 `legal-brainstorming → legal-research → legal-graph` 主線；契約／合規案件可直接進 `compliance-verification`。兩條路徑的法源檢索都以本機 MCP 工具為後盾，並受引用驗證與廢棄判決防護約束（防幻覺）。
+> 訴訟／爭議走 `legal-brainstorming → legal-research → legal-graph` 主線；契約／合規案件可直接進 `compliance-verification`。判例檢索預設同時執行語意軌與關鍵字軌，再合併去重；兩條業務路徑均受引用驗證與廢棄判決防護約束（防幻覺）。
 
 ## 技能列表 (Skills)
 *   **`legal-brainstorming`**：案情分析與訴訟策略起草前腦力激盪。
-*   **`legal-research`**：指導 Agent 精準檢索台灣司法院判決與全國法規。
-*   **`legal-graph`**：將案情、法條、判決、爭點彙整為法律關係圖 JSON，並隨附自包含 3D 渲染器（`skills/legal-graph/renderer/`）可直接檢視。
+*   **`legal-research`**：以語意與關鍵字雙軌並行檢索台灣判例，合併去重後執行引用驗證、廢棄判決防護與信任閘門。
+*   **`legal-graph`**：將案情、法條、判決、爭點、當事人、證據，以及 `contract → clause → obligation` 契約義務三層模型與風險評級彙整為 superset 法律關係圖資料；隨附自包含 3D 渲染器（`skills/legal-graph/renderer/`）可直接檢視。
 *   **`compliance-verification`**：進行合約風險稽核與特定法規合規性檢查。
 
 ### 建議串接流程（端到端）
 
 1. **`legal-brainstorming`**：逐步梳理案情、法律關係與爭點。
-2. **`legal-research`**：以 `dr-lawbot:search_bundle`（語意）找相關判例、`taiwan-legal-db` 查法條，並執行引用驗證與廢棄判決防護。
-3. **`legal-graph`**：將事實、法條、判決、爭點整理為標準 JSON（被廢棄判決標 `overturned`）。
-4. **檢視關係圖**：`legal-graph` 會將 JSON 寫入 `skills/legal-graph/renderer/data.js`；以瀏覽器開啟同目錄的自包含 `renderer/index.html` 即自動載入渲染互動式法律關係圖（已廢棄判決會以紅框虛線標示）。附帶的 `data.js` 為虛構示範資料，可直接開啟預覽。
+2. **`legal-research`**：同一回合並行呼叫 `dr-lawbot:search_bundle`（語意）與 `taiwan-legal-db:search_judgments`（法律關鍵字），依 JID 合併去重後執行引用驗證與廢棄判決防護；法條原文另由 `taiwan-legal-db` 查證。
+3. **`legal-graph`**：將事實、法條、判決、爭點、當事人與證據整理為 superset JSON；契約案件另建立 `contract → clause → obligation` 三層結構並對映合規審查風險，被上級審廢棄的判決標記 `overturned`。
+4. **檢視關係圖**：依下方「輸出路徑」將 `{nodes, edges}` 寫入對應的 `data.js`，再以瀏覽器開啟同一組的 `index.html`，即可自動載入互動式法律關係圖。已廢棄判決會以紅框虛線標示。
+
+### legal-graph 輸出路徑
+
+`legal-graph` 支援完整開發專案與 skills-only 發布包兩種目錄配置，請勿混用：
+
+| 使用方式 | 資料檔 | 開啟頁面 |
+|---|---|---|
+| 完整 `law-powers` 開發專案 | 專案根目錄 `data.js` | 專案根目錄 `index.html` |
+| GitHub skills-only 發布包／全域安裝技能 | 相對於 `legal-graph` 技能目錄的 `renderer/data.js` | 同目錄的 `renderer/index.html` |
+
+公開 GitHub repo 隨附的 `skills/legal-graph/renderer/data.js` 是虛構示範資料，可直接開啟預覽；實際產圖時應保留 `window.GRAPH_DATA = { "nodes": [...], "edges": [...] };` 格式並以新資料取代示範內容。
