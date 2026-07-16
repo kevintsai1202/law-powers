@@ -71,6 +71,8 @@ flowchart TD
     LR["legal-research<br/>雙軌判例檢索・合併去重・引用驗證"]
     LG["legal-graph<br/>彙整為關係圖 superset JSON・契約義務模型"]
     CV["compliance-verification<br/>合約風險稽核・法規合規檢查"]
+    LWH["legal-writing-humanizer<br/>台灣法律用語・去 AI 味・法律效果保全"]
+    DOC["書狀・法律意見・契約說明"]
     RN["renderer/index.html<br/>自包含 3D 互動關係圖"]
     DB1[("dr-lawbot<br/>search_bundle 語意軌")]
     DB2[("taiwan-legal-db<br/>search_judgments 關鍵字軌<br/>法規・判決・釋字")]
@@ -79,6 +81,9 @@ flowchart TD
     U -. 契約審查入口 .-> CV
     LB --> LR
     LR --> LG
+    LR --> LWH
+    CV --> LWH
+    LWH --> DOC
     LG -->|寫入 data.js| RN
     LR -. 佐證法源 .-> CV
     LR <-->|語意軌| DB1
@@ -98,13 +103,15 @@ flowchart TD
 *   **`legal-research`**：以語意與關鍵字雙軌並行檢索台灣判例，合併去重後執行引用驗證、廢棄判決防護與信任閘門。
 *   **`legal-graph`**：將案情、法條、判決、爭點、當事人、證據，以及 `contract → clause → obligation` 契約義務三層模型與風險評級彙整為 superset 法律關係圖資料；隨附自包含 3D 渲染器（`skills/legal-graph/renderer/`）可直接檢視。
 *   **`compliance-verification`**：進行合約風險稽核與特定法規合規性檢查。
+*   **`legal-writing-humanizer`**：台灣法律專用的繁體中文校訂技能；將一般中文、中國大陸法律用語或帶有 AI 痕跡的法律文字校訂為自然的台灣法律專業語體，並保護日期、金額、請求、抗辯、引用及契約權利義務不被改動。
 
 ### 建議串接流程（端到端）
 
 1. **`legal-brainstorming`**：逐步梳理案情、法律關係與爭點。
 2. **`legal-research`**：同一回合並行呼叫 `dr-lawbot:search_bundle`（語意）與 `taiwan-legal-db:search_judgments`（法律關鍵字），依 JID 合併去重後執行引用驗證與廢棄判決防護；法條原文另由 `taiwan-legal-db` 查證。
-3. **`legal-graph`**：將事實、法條、判決、爭點、當事人與證據整理為 superset JSON；契約案件另建立 `contract → clause → obligation` 三層結構並對映合規審查風險，被上級審廢棄的判決標記 `overturned`。
-4. **檢視關係圖**：依下方「輸出路徑」將 `{nodes, edges}` 寫入對應的 `data.js`，再以瀏覽器開啟同一組的 `index.html`，即可自動載入互動式法律關係圖。已廢棄判決會以紅框虛線標示。
+3. **`legal-writing-humanizer`（文字交付支線）**：完成法源查證或合規審查後，以繁體中文將法律分析、書狀、契約說明或客戶信函調整為台灣法律語體並移除 AI 痕跡；不得新增主張、法源或改變法律效果。
+4. **`legal-graph`（關係圖支線）**：將事實、法條、判決、爭點、當事人與證據整理為 superset JSON；契約案件另建立 `contract → clause → obligation` 三層結構並對映合規審查風險，被上級審廢棄的判決標記 `overturned`。
+5. **檢視關係圖**：依下方「輸出路徑」將 `{nodes, edges}` 寫入對應的 `data.js`，再以瀏覽器開啟同一組的 `index.html`，即可自動載入互動式法律關係圖。已廢棄判決會以紅框虛線標示。
 
 ### legal-graph 輸出路徑
 
