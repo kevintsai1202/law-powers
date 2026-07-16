@@ -76,7 +76,7 @@ graph TD
 10. **`obligation` (契約義務)**：
     *   *定義*：由條款課予特定當事人之給付義務或行為義務。
     *   *例如*：`"id": "o1", "label": "交付軟體成果", "group": "obligation", "duty": "main"`。
-    *   *`duty` 欄位*（可選）：依民法給付義務分類——`main`（主給付義務）、`collateral`（從給付義務）、`incidental`（附隨義務）；`index.html` 依此縮放節點大小（主給付最大）並於詳情面板顯示「義務類型」。
+    *   *`duty` 欄位*（可選）：依民法給付義務分類——`main`（主給付義務）、`collateral`（從給付義務）、`incidental`（附隨義務）；`index.html` 依此縮放節點大小（主給付最大），未標註時以中間尺寸（與從給付相同）呈現且詳情面板不顯示義務類型。**注意**：鍵名以本表中文分類為準，非依英文法學譯名慣例（比較法上 collateral duty 慣指附隨義務），對接外部資料時勿依英譯直覺對映。
 
 **其他可選欄位**（任一節點皆可加註）：
 *   **`family`**：案件分群標籤（如同一被告集團、同一系列產品訴訟、同一契約叢集），用於在 `index.html` 啟用「家族聚焦」視圖。
@@ -125,8 +125,10 @@ Agent 必須先以下方的 ` ```json ` 格式在內部組裝 `{nodes, edges}` �
     { "id": "plaintiff_id", "label": "原告名稱", "group": "plaintiff" },
     { "id": "evi_id", "label": "證據名稱", "group": "evidence", "title": "滑鼠懸停簡述", "description": "證明力說明", "favorable": "strong" },
     { "id": "contract_id", "label": "契約名稱", "group": "contract", "title": "滑鼠懸停簡述", "description": "契約概要", "family": "契約叢集名稱" },
-    { "id": "clause_id", "label": "§9 違約金", "group": "clause", "title": "滑鼠懸停簡述", "description": "【條款原文】…\n\n【風險分析】…\n\n【修改建議】…", "risk": "high" },
-    { "id": "obligation_id", "label": "義務名稱", "group": "obligation", "title": "滑鼠懸停簡述", "description": "義務內容說明", "duty": "main" },
+    { "id": "clause_id", "label": "§3 交付期限", "group": "clause", "title": "滑鼠懸停簡述", "description": "【條款原文】…\n\n【風險分析】…\n\n【修改建議】…", "risk": "medium" },
+    { "id": "clause_penalty_id", "label": "§9 違約金", "group": "clause", "title": "滑鼠懸停簡述", "description": "【條款原文】…\n\n【風險分析】…\n\n【修改建議】…", "risk": "high" },
+    { "id": "obligation_id", "label": "交付工作成果", "group": "obligation", "title": "滑鼠懸停簡述", "description": "義務內容說明", "duty": "main" },
+    { "id": "obligation_id_2", "label": "給付報酬", "group": "obligation", "title": "滑鼠懸停簡述", "description": "義務內容說明", "duty": "main" },
     { "id": "party_a_id", "label": "契約甲方名稱", "group": "party", "role": "甲方（委託人）" }
   ],
   "edges": [
@@ -136,11 +138,12 @@ Agent 必須先以下方的 ` ```json ` 格式在內部組裝 `{nodes, edges}` �
     { "from": "jud_id", "to": "evi_id", "label": "證據" },
     { "from": "party_a_id", "to": "contract_id", "label": "當事人", "title": "甲方（委託人）" },
     { "from": "contract_id", "to": "clause_id", "label": "包含" },
+    { "from": "contract_id", "to": "clause_penalty_id", "label": "包含" },
     { "from": "clause_id", "to": "obligation_id", "label": "課予" },
-    { "from": "party_a_id", "to": "obligation_id", "label": "負擔", "title": "甲方為此義務之債務人" },
-    { "from": "obligation_id", "to": "party_id", "label": "得請求", "title": "對造為此義務之債權人" },
+    { "from": "party_id", "to": "obligation_id", "label": "負擔", "title": "乙方為此義務之債務人" },
+    { "from": "obligation_id", "to": "party_a_id", "label": "得請求", "title": "甲方為此義務之債權人" },
     { "from": "obligation_id", "to": "obligation_id_2", "label": "對價", "title": "雙務契約互為對價之給付" },
-    { "from": "clause_id", "to": "obligation_id", "label": "違約效果", "title": "違反此義務觸發違約金條款" }
+    { "from": "clause_penalty_id", "to": "obligation_id", "label": "違約效果", "title": "違反交付義務觸發違約金條款" }
   ]
 }
 ```
