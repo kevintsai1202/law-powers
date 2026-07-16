@@ -1,0 +1,507 @@
+<title>台灣判例檢索工具比較：tw-legal-rag ⚖ mcp-taiwan-legal-db</title>
+<style>
+  :root {
+    --bg: #f6f4ef;
+    --surface: #ffffff;
+    --surface-2: #faf8f3;
+    --ink: #1b1d21;
+    --ink-2: #4a4e57;
+    --ink-3: #797d87;
+    --line: #e4e0d6;
+    --line-strong: #d2cdbf;
+    /* tw-legal-rag = 琥珀金 */
+    --amber: #a8760a;
+    --amber-soft: #f3e9d3;
+    --amber-ink: #6b4c05;
+    /* taiwan-legal-db = 靛藍 */
+    --indigo: #2f5aa0;
+    --indigo-soft: #e0e9f5;
+    --indigo-ink: #1e3c6e;
+    --accent: #1e3c6e;
+    --radius: 14px;
+    --shadow: 0 1px 2px rgba(20,22,26,.04), 0 8px 28px rgba(20,22,26,.06);
+    --mono: "SFMono-Regular", "Cascadia Code", "JetBrains Mono", Consolas, monospace;
+    --sans: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #131418;
+      --surface: #1b1d22;
+      --surface-2: #202329;
+      --ink: #ecebe7;
+      --ink-2: #b6b8be;
+      --ink-3: #83868e;
+      --line: #2c2f36;
+      --line-strong: #3a3e46;
+      --amber: #e0a83a;
+      --amber-soft: #35291296;
+      --amber-ink: #efc873;
+      --indigo: #7ba6e6;
+      --indigo-soft: #1e2a4096;
+      --indigo-ink: #a9c6f0;
+      --accent: #7ba6e6;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 34px rgba(0,0,0,.4);
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #f6f4ef; --surface: #ffffff; --surface-2: #faf8f3;
+    --ink: #1b1d21; --ink-2: #4a4e57; --ink-3: #797d87;
+    --line: #e4e0d6; --line-strong: #d2cdbf;
+    --amber: #a8760a; --amber-soft: #f3e9d3; --amber-ink: #6b4c05;
+    --indigo: #2f5aa0; --indigo-soft: #e0e9f5; --indigo-ink: #1e3c6e;
+    --accent: #1e3c6e;
+    --shadow: 0 1px 2px rgba(20,22,26,.04), 0 8px 28px rgba(20,22,26,.06);
+  }
+  :root[data-theme="dark"] {
+    --bg: #131418; --surface: #1b1d22; --surface-2: #202329;
+    --ink: #ecebe7; --ink-2: #b6b8be; --ink-3: #83868e;
+    --line: #2c2f36; --line-strong: #3a3e46;
+    --amber: #e0a83a; --amber-soft: #35291296; --amber-ink: #efc873;
+    --indigo: #7ba6e6; --indigo-soft: #1e2a4096; --indigo-ink: #a9c6f0;
+    --accent: #7ba6e6;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 34px rgba(0,0,0,.4);
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: var(--sans); line-height: 1.65;
+    font-size: 16px; letter-spacing: .01em;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 0 22px; }
+
+  /* ---- Top bar ---- */
+  .topbar {
+    position: sticky; top: 0; z-index: 20;
+    backdrop-filter: saturate(1.4) blur(10px);
+    background: color-mix(in srgb, var(--bg) 82%, transparent);
+    border-bottom: 1px solid var(--line);
+  }
+  .topbar-inner { display: flex; align-items: center; justify-content: space-between; height: 54px; }
+  .brand { display: flex; align-items: center; gap: 9px; font-weight: 700; font-size: 15px; letter-spacing: .02em; }
+  .brand svg { width: 20px; height: 20px; color: var(--accent); }
+  .theme-btn {
+    display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+    border: 1px solid var(--line-strong); background: var(--surface);
+    color: var(--ink-2); border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 13px;
+  }
+  .theme-btn:hover { color: var(--ink); border-color: var(--accent); }
+  .theme-btn svg { width: 15px; height: 15px; }
+
+  /* ---- Hero ---- */
+  .hero { padding: 60px 0 30px; }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: 12.5px; font-weight: 600; letter-spacing: .09em;
+    text-transform: uppercase; color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    padding: 5px 12px; border-radius: 999px; margin-bottom: 20px;
+  }
+  h1 {
+    font-size: clamp(29px, 5.4vw, 45px); line-height: 1.12; margin: 0 0 18px;
+    font-weight: 800; letter-spacing: -.01em;
+  }
+  h1 .amber { color: var(--amber); }
+  h1 .indigo { color: var(--indigo); }
+  .lede { font-size: clamp(16px, 2.4vw, 19px); color: var(--ink-2); max-width: 44em; margin: 0; }
+  .meta-row { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 26px; font-size: 13.5px; color: var(--ink-3); }
+  .meta-row span { display: inline-flex; align-items: center; gap: 6px; }
+  .meta-row svg { width: 15px; height: 15px; }
+
+  /* ---- Sections ---- */
+  section { padding: 30px 0; }
+  .sec-head { display: flex; align-items: baseline; gap: 12px; margin: 0 0 20px; }
+  .sec-num { font-family: var(--mono); font-size: 13px; color: var(--accent); font-weight: 600; }
+  h2 { font-size: clamp(21px, 3.2vw, 27px); margin: 0; font-weight: 750; letter-spacing: -.01em; }
+  .sec-sub { color: var(--ink-2); margin: -8px 0 22px; max-width: 46em; }
+
+  /* ---- Key finding banner ---- */
+  .finding {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 26px 26px 22px; box-shadow: var(--shadow);
+    position: relative; overflow: hidden;
+  }
+  .finding::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+    background: linear-gradient(var(--amber), var(--indigo));
+  }
+  .finding h3 { margin: 0 0 6px; font-size: 18px; }
+  .finding p { margin: 0 0 16px; color: var(--ink-2); }
+  .link-map { display: grid; gap: 10px; }
+  .link-row {
+    display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px;
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 11px 14px;
+    font-size: 14px;
+  }
+  .link-row .eq { color: var(--accent); font-weight: 700; }
+  .link-row code, code { font-family: var(--mono); font-size: .88em; background: color-mix(in srgb, var(--accent) 9%, transparent);
+    padding: 2px 6px; border-radius: 5px; color: var(--ink); }
+  @media (max-width: 620px) { .link-row { grid-template-columns: 1fr; text-align: left; } .link-row .eq { justify-self: start; } }
+
+  /* ---- Identity cards ---- */
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 720px) { .cards { grid-template-columns: 1fr; } }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 22px; box-shadow: var(--shadow); }
+  .card.amber { border-top: 3px solid var(--amber); }
+  .card.indigo { border-top: 3px solid var(--indigo); }
+  .card-tag { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 700;
+    letter-spacing: .05em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; margin-bottom: 12px; }
+  .card.amber .card-tag { background: var(--amber-soft); color: var(--amber-ink); }
+  .card.indigo .card-tag { background: var(--indigo-soft); color: var(--indigo-ink); }
+  .card h3 { margin: 0 0 3px; font-size: 20px; font-family: var(--mono); font-weight: 650; letter-spacing: -.01em; }
+  .card .role { color: var(--ink-2); font-size: 14.5px; margin: 0 0 16px; min-height: 2.9em; }
+  .spec { list-style: none; margin: 0; padding: 0; display: grid; gap: 11px; }
+  .spec li { display: grid; grid-template-columns: 92px 1fr; gap: 10px; font-size: 14px; align-items: start; }
+  .spec .k { color: var(--ink-3); font-size: 12.5px; padding-top: 1px; }
+  .spec .v { color: var(--ink); }
+  .spec .v b { font-weight: 700; }
+
+  /* ---- Split concept ---- */
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 720px) { .split { grid-template-columns: 1fr; } }
+  .split-col { border-radius: var(--radius); padding: 22px; border: 1px solid var(--line); }
+  .split-col.amber { background: var(--amber-soft); }
+  .split-col.indigo { background: var(--indigo-soft); }
+  .split-col .ico { width: 30px; height: 30px; margin-bottom: 10px; }
+  .split-col.amber .ico { color: var(--amber-ink); }
+  .split-col.indigo .ico { color: var(--indigo-ink); }
+  .split-col h4 { margin: 0 0 4px; font-size: 17px; }
+  .split-col.amber h4 { color: var(--amber-ink); }
+  .split-col.indigo h4 { color: var(--indigo-ink); }
+  .split-col .tagline { font-size: 13px; font-weight: 600; letter-spacing: .03em; opacity: .8; margin: 0 0 12px; }
+  .split-col p { margin: 0; font-size: 14.5px; color: var(--ink); }
+  .split-col p + p { margin-top: 10px; }
+
+  /* ---- Comparison table ---- */
+  .table-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius);
+    box-shadow: var(--shadow); background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 14px; }
+  thead th { position: sticky; top: 0; background: var(--surface-2); text-align: left;
+    padding: 14px 16px; font-weight: 700; border-bottom: 2px solid var(--line-strong); font-size: 13px; letter-spacing: .02em; }
+  thead th.amber-h { color: var(--amber); }
+  thead th.indigo-h { color: var(--indigo); }
+  thead th .subh { display: block; font-weight: 500; font-size: 11px; color: var(--ink-3); font-family: var(--mono); letter-spacing: 0; margin-top: 2px; }
+  tbody td { padding: 13px 16px; border-bottom: 1px solid var(--line); vertical-align: top; color: var(--ink-2); }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody td:first-child { color: var(--ink-3); font-size: 12.5px; font-weight: 600; white-space: nowrap; }
+  tbody td b { color: var(--ink); font-weight: 700; }
+  tbody tr:hover td { background: color-mix(in srgb, var(--accent) 4%, transparent); }
+  .pill { display: inline-block; font-size: 11.5px; font-family: var(--mono); padding: 1px 7px; border-radius: 5px;
+    background: color-mix(in srgb, var(--ink-3) 15%, transparent); color: var(--ink-2); }
+
+  /* ---- Demo / terminal ---- */
+  .demo { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    overflow: hidden; box-shadow: var(--shadow); }
+  .demo-head { display: flex; align-items: center; gap: 8px; padding: 11px 16px; border-bottom: 1px solid var(--line);
+    background: var(--surface-2); }
+  .dot { width: 11px; height: 11px; border-radius: 50%; }
+  .demo-head .label { margin-left: 8px; font-family: var(--mono); font-size: 12.5px; color: var(--ink-3); }
+  .term { margin: 0; padding: 18px 16px; font-family: var(--mono); font-size: 13px; line-height: 1.7;
+    overflow-x: auto; color: var(--ink); background: var(--surface); }
+  .term .prompt { color: var(--amber); }
+  .term .cmd { color: var(--ink); font-weight: 600; }
+  .term .cmt { color: var(--ink-3); }
+  .term .ok { color: #2e8b57; }
+  @media (prefers-color-scheme: dark) { .term .ok { color: #6ecb8f; } }
+  :root[data-theme="dark"] .term .ok { color: #6ecb8f; }
+  .cases { display: grid; gap: 8px; margin-top: 4px; }
+  .case { display: grid; grid-template-columns: 26px 1fr; gap: 10px; padding: 10px 12px;
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: 9px; font-size: 13px; }
+  .case .n { font-family: var(--mono); color: var(--amber); font-weight: 700; }
+  .case .cite { color: var(--ink); font-weight: 600; }
+  .case .desc { color: var(--ink-3); font-size: 12px; margin-top: 2px; }
+  .demo-note { padding: 12px 16px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-2);
+    background: var(--surface-2); display: flex; gap: 9px; align-items: flex-start; }
+  .demo-note svg { width: 16px; height: 16px; color: var(--amber); flex: none; margin-top: 2px; }
+
+  /* ---- Decision guide ---- */
+  .guide { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 720px) { .guide { grid-template-columns: 1fr; } }
+  .guide-col { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 20px 22px; box-shadow: var(--shadow); }
+  .guide-col.amber { border-left: 3px solid var(--amber); }
+  .guide-col.indigo { border-left: 3px solid var(--indigo); }
+  .guide-col h4 { margin: 0 0 14px; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+  .guide-col.amber h4 { color: var(--amber-ink); }
+  .guide-col.indigo h4 { color: var(--indigo-ink); }
+  .guide-col svg { width: 17px; height: 17px; }
+  .use-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 11px; }
+  .use-list li { display: grid; grid-template-columns: 20px 1fr; gap: 9px; font-size: 14px; color: var(--ink-2); }
+  .use-list li svg { width: 15px; height: 15px; margin-top: 3px; }
+  .guide-col.amber .use-list svg { color: var(--amber); }
+  .guide-col.indigo .use-list svg { color: var(--indigo); }
+
+  /* ---- Recommendations ---- */
+  .recs { display: grid; gap: 12px; }
+  .rec { display: grid; grid-template-columns: 34px 1fr; gap: 14px; background: var(--surface);
+    border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; box-shadow: var(--shadow); }
+  .rec .num { font-family: var(--mono); font-weight: 700; color: var(--accent); font-size: 15px;
+    width: 30px; height: 30px; display: grid; place-items: center; border-radius: 8px;
+    background: color-mix(in srgb, var(--accent) 12%, transparent); }
+  .rec h4 { margin: 0 0 4px; font-size: 15.5px; }
+  .rec p { margin: 0; font-size: 14px; color: var(--ink-2); }
+
+  /* ---- Footer ---- */
+  footer { border-top: 1px solid var(--line); margin-top: 20px; padding: 30px 0 50px; color: var(--ink-3); font-size: 13px; }
+  footer .sources { display: grid; gap: 8px; margin: 14px 0 20px; }
+  footer a { color: var(--accent); text-decoration: none; word-break: break-all; }
+  footer a:hover { text-decoration: underline; }
+  .disclaimer { background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px;
+    padding: 14px 16px; font-size: 12.5px; color: var(--ink-3); line-height: 1.6; }
+  .disclaimer b { color: var(--ink-2); }
+
+  .fade { opacity: 0; transform: translateY(14px); transition: opacity .6s ease, transform .6s ease; }
+  .fade.in { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) { .fade { opacity: 1; transform: none; transition: none; } }
+</style>
+
+<div class="topbar">
+  <div class="wrap topbar-inner">
+    <div class="brand">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 7h18M6 7l-3 6a4 4 0 0 0 6 0L6 7zm12 0l-3 6a4 4 0 0 0 6 0l-3-6z"/></svg>
+      判例檢索工具比較
+    </div>
+    <button class="theme-btn" id="themeBtn" aria-label="切換主題">
+      <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4l1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      <span id="themeLabel">主題</span>
+    </button>
+  </div>
+</div>
+
+<main class="wrap">
+
+  <div class="hero fade">
+    <span class="eyebrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13M9 9l12-2"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+      技術比較報告 · 台灣法律檢索
+    </span>
+    <h1><span class="amber">tw-legal-rag</span> ⚖ <span class="indigo">mcp-taiwan-legal-db</span><br>兩套判例檢索工具的深入比較</h1>
+    <p class="lede">兩者常被當成競品二選一，實際上是同一檢索生態系中的互補元件——一個負責「語義召回相似判決」，另一個負責「精確取回官方原文與法規」。本報告拆解其判決檢索機制、資料來源與適用場景。</p>
+    <div class="meta-row">
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>含本機 CLI 實測佐證</span>
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>依據 2026-07 官方 README</span>
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path d="M2 12h20"/><path d="M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20z"/></svg>兩者皆 MIT 授權</span>
+    </div>
+  </div>
+
+  <section class="fade">
+    <div class="sec-head"><span class="sec-num">00</span><h2>先講最關鍵的發現</h2></div>
+    <p class="sec-sub">在逐項比較前，先釐清一個容易誤解的關係：這兩個 repo 背後其實共用同一套後端與 CLI。</p>
+    <div class="finding">
+      <h3>它們不是競品，而是「語義層」與「官方層」的互補堆疊</h3>
+      <p>比對端點與可執行檔名稱後可確認三條連結——若你已安裝 <code>mcp-taiwan-legal-db</code>，等於同時擁有了 tw-legal-rag 的檢索能力：</p>
+      <div class="link-map">
+        <div class="link-row">
+          <span>tw-legal-rag 的 Remote MCP 端點<br><code>tlr.dr-lawbot.com/mcp</code></span>
+          <span class="eq">＝</span>
+          <span>你本機已連線的 MCP<br><code>dr-lawbot</code></span>
+        </div>
+        <div class="link-row">
+          <span>tw-legal-rag 的 CLI<br><code>twlegalrag</code></span>
+          <span class="eq">＝</span>
+          <span>安裝 mcp-taiwan-legal-db 時附帶的<br><code>twlegalrag.exe</code></span>
+        </div>
+        <div class="link-row">
+          <span>tw-legal-rag 的語義檢索</span>
+          <span class="eq">→</span>
+          <span>已被整合進 mcp-taiwan-legal-db<br>作為 hybrid retrieval 檢索層</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="fade">
+    <div class="sec-head"><span class="sec-num">01</span><h2>兩套工具的身分卡</h2></div>
+    <div class="cards">
+      <div class="card amber">
+        <span class="card-tag">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          語義檢索層
+        </span>
+        <h3>tw-legal-rag</h3>
+        <p class="role">以自然語言檢索台灣法院判決的開源工具，把海量判決預先向量化，主打「白話找相似案例」。</p>
+        <ul class="spec">
+          <li><span class="k">定位</span><span class="v"><b>判決語義檢索</b>（CLI＋REST＋遠端 MCP）</span></li>
+          <li><span class="k">資料來源</span><span class="v">Legal Detective TLR 端點<br><b>約 2,200 萬筆</b>判決（已結構化＋向量化）<span class="pill">README 宣稱值</span></span></li>
+          <li><span class="k">涵蓋</span><span class="v">僅判決（無法規、無憲法解釋）</span></li>
+          <li><span class="k">介面</span><span class="v"><code>search</code> / <code>pack</code> / <code>health</code> / <code>check</code>；REST <code>/v1/search</code>、<code>/v1/fulltext</code></span></li>
+          <li><span class="k">依賴</span><span class="v">極輕：<code>httpx</code> / <code>typer</code> / <code>rich</code></span></li>
+          <li><span class="k">授權</span><span class="v">MIT · 不呼叫 LLM、不產生法律意見</span></li>
+        </ul>
+      </div>
+      <div class="card indigo">
+        <span class="card-tag">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          官方資料層
+        </span>
+        <h3>mcp-taiwan-legal-db</h3>
+        <p class="role">讓 AI 代理查詢台灣官方法律資料庫的 MCP server，一站涵蓋判決、法規與憲法解釋，回傳結構化原文。</p>
+        <ul class="spec">
+          <li><span class="k">定位</span><span class="v"><b>綜合官方法律資料</b> MCP server</span></li>
+          <li><span class="k">資料來源</span><span class="v">司法院、法務部、憲法法庭<br><b>官網即時查詢</b>＋本機快取</span></li>
+          <li><span class="k">涵蓋</span><span class="v">判決＋<b>法規 11,700+</b>＋憲法（釋字 813／憲判 55）</span></li>
+          <li><span class="k">介面</span><span class="v"><b>8 個 MCP 工具</b>（見下方比較表）</span></li>
+          <li><span class="k">依賴</span><span class="v">FastMCP＋httpx＋Playwright（WAF fallback）＋SQLite</span></li>
+          <li><span class="k">授權</span><span class="v">程式 MIT／憲法資料 CC0 · 不呼叫 LLM</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="fade">
+    <div class="sec-head"><span class="sec-num">02</span><h2>判決檢索的核心分野</h2></div>
+    <p class="sec-sub">兩者對「搜尋判例」給出的答案完全不同層次——這是整份報告最該記住的一組對照。</p>
+    <div class="split">
+      <div class="split-col amber">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 3A6.5 6.5 0 1 0 16 9.5 6.5 6.5 0 0 0 9.5 3z"/><path d="M21 21l-5.2-5.2"/><path d="M6.5 9.5h6M9.5 6.5v6" opacity=".5"/></svg>
+        <p class="tagline">召回相似 · SEMANTIC / RECALL</p>
+        <h4>「不知道字號，用白話講情境」</h4>
+        <p>以向量語義比對，找出「概念相似但用詞不同」的判決，不必輸入正確關鍵字或案號。</p>
+        <p><b>適合：</b>找類似案例、案例研究、法律諮詢初探、探索性檢索。</p>
+      </div>
+      <div class="split-col indigo">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z" opacity=".4"/><path d="M8 3v4M16 3v4M4 9h16"/><path d="M9 14l2 2 4-4"/></svg>
+        <p class="tagline">精確取原文 · PRECISION / AUTHORITATIVE</p>
+        <h4>「知道關鍵字/案號，要官方原文」</h4>
+        <p>直接查詢司法院官網，以關鍵字或案號精確定位，回傳拆解好的結構化欄位。</p>
+        <p><b>適合：</b>引用查證、抓判決書原文、需要權威官方來源與可信引用。</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="fade">
+    <div class="sec-head"><span class="sec-num">03</span><h2>逐項比較表</h2></div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:120px">維度</th>
+            <th class="amber-h">tw-legal-rag<span class="subh">twlegalrag / dr-lawbot</span></th>
+            <th class="indigo-h">mcp-taiwan-legal-db<span class="subh">lawchat-oss</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>判決檢索方式</td><td><b>語義向量</b>為主（<code>hybrid</code>），另支援 <code>keyword</code> / <code>phrase</code></td><td><b>關鍵字／案號精確查詢</b>；遇 F5 WAF 自動 fallback 到 Playwright。<b>非向量/RAG</b></td></tr>
+          <tr><td>判決資料源</td><td>Legal Detective TLR（約 2,200 萬筆，已向量化）</td><td>司法院 <code>judgment.judicial.gov.tw</code> 即時查詢</td></tr>
+          <tr><td>涵蓋範圍</td><td>僅判決</td><td>判決＋<b>法規 11,700+</b>＋憲法（釋字 813／憲判 55）</td></tr>
+          <tr><td>搜尋回傳欄位</td><td><code>citation_id/text/url</code>、<code>fulltext_excerpt</code>、<code>case_history</code>（上訴鏈）、<code>allowed_citations</code></td><td><code>case_id, court, date, main_text, facts, reasoning, cited_statutes, cited_cases, source_url</code></td></tr>
+          <tr><td>快取／離線</td><td>全在雲端，本機零索引</td><td>判決/法規即時查＋SQLite 快取（判決 30 天）；<b>憲法解釋離線預打包</b></td></tr>
+          <tr><td>對外介面</td><td>CLI ＋ REST API ＋ Remote MCP</td><td>MCP（8 tools）</td></tr>
+          <tr><td>MCP 工具</td><td>單一語義檢索端點（透過 <code>tlr.dr-lawbot.com/mcp</code>）</td><td><code>search_judgments</code>、<code>get_judgment</code>、<code>query_regulation</code>、<code>search_regulations</code>、<code>get_interpretation</code>、<code>get_citations</code>…</td></tr>
+          <tr><td>技術棧</td><td>Python（極輕量 client）</td><td>Python＋FastMCP＋Playwright＋SQLite</td></tr>
+          <tr><td>是否呼叫 LLM</td><td>否（純檢索）</td><td>否（純檢索）</td></tr>
+          <tr><td>授權</td><td>MIT</td><td>程式 MIT／憲法資料 CC0</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="fade">
+    <div class="sec-head"><span class="sec-num">04</span><h2>本機實測：語義檢索的實際效果</h2></div>
+    <p class="sec-sub">用 <code>twlegalrag</code> CLI 以一句白話（非關鍵字、非案號）查詢，驗證語義檢索的召回能力。</p>
+    <div class="demo">
+      <div class="demo-head">
+        <span class="dot" style="background:#e5695b"></span><span class="dot" style="background:#e6b95c"></span><span class="dot" style="background:#6ec18a"></span>
+        <span class="label">PowerShell · twlegalrag</span>
+      </div>
+      <div class="term">
+<span class="cmt"># 先確認 TLR 服務狀態</span>
+<span class="prompt">&gt;</span> <span class="cmd">twlegalrag health</span>
+status: <span class="ok">ok</span>   retrieval: <span class="ok">full</span>
+
+<span class="cmt"># 用白話情境查詢，語義 hybrid 模式，取 3 筆</span>
+<span class="prompt">&gt;</span> <span class="cmd">twlegalrag search "車禍對方全責我可以求償哪些項目" -n 3</span>
+        <div class="cases">
+          <div class="case"><span class="n">1</span><span><span class="cite">臺灣臺中地方法院簡易庭 109 年度中簡字第 2021 號（民事）</span><span class="desc">車禍損害賠償求償案件</span></span></div>
+          <div class="case"><span class="n">2</span><span><span class="cite">臺灣花蓮地方法院簡易庭 108 年度花簡字第 99 號（民事）</span><span class="desc">車禍損害賠償求償案件</span></span></div>
+          <div class="case"><span class="n">3</span><span><span class="cite">臺灣臺中地方法院簡易庭 111 年度沙簡字第 785 號（民事）</span><span class="desc">車禍損害賠償求償案件</span></span></div>
+        </div>
+      </div>
+      <div class="demo-note">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path d="M12 8v4M12 16h.01"/></svg>
+        <span>查詢完全沒有輸入字號或「損害賠償」等法律關鍵字，語義層仍精準召回 3 筆車禍求償民事判決——這正是關鍵字檢索做不到的。<b>mcp-taiwan-legal-db</b> 的判決工具在剛安裝、尚未重啟的 session 中無法對等實跑，故此處僅示範語義層；其精確查詢的回傳欄位見比較表。</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="fade">
+    <div class="sec-head"><span class="sec-num">05</span><h2>該用哪一個？</h2></div>
+    <div class="guide">
+      <div class="guide-col amber">
+        <h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>選 tw-legal-rag / dr-lawbot</h4>
+        <ul class="use-list">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>只有案情描述、不知道確切字號時</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>要大量找「概念相似」的類似案例</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>諮詢初探、案例研究、判決趨勢探索</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>想要零本機索引、輕量雲端檢索</li>
+        </ul>
+      </div>
+      <div class="guide-col indigo">
+        <h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>選 mcp-taiwan-legal-db</h4>
+        <ul class="use-list">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>需要<b>法規條文</b>檢索（tw-legal-rag 沒有）</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>要抓判決書官方原文與結構化欄位</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>引用查證，需權威來源與正確字號</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>查憲法解釋（釋字／憲判，可離線）</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="fade">
+    <div class="sec-head"><span class="sec-num">06</span><h2>對 law-powers 技能包的建議</h2></div>
+    <div class="recs">
+      <div class="rec"><span class="num">1</span><div><h4>兩個都留，分工使用</h4><p>判例檢索<b>預設</b>走 <code>dr-lawbot:search_bundle</code>（語義召回，<code>legal-research</code> 技能已定為預設入口）；查法規條文、抓判決官方原文走 <code>taiwan-legal-db</code>（精確取回）。兩者互補而非取代。</p></div></div>
+      <div class="rec"><span class="num">2</span><div><h4>法規檢索只能靠 mcp-taiwan-legal-db</h4><p>tw-legal-rag <b>沒有法規庫</b>；法規條文須走 <code>taiwan-legal-db</code> 的 <code>search_regulations</code> / <code>get_pcode</code>，釋字憲判走 <code>search_interpretations</code>，此路徑非它不可。</p></div></div>
+      <div class="rec"><span class="num">3</span><div><h4>用「語義找案 → 官方驗證」的兩段式流程</h4><p>先用語義檢索召回候選案號，再用 <code>get_judgment</code> 抓官方全文確認字號與原文，恰好落實 AGENTS.md 的「嚴格引用驗證」防幻覺原則。</p></div></div>
+      <div class="rec"><span class="num">4</span><div><h4>語義檢索走原生 MCP，不走 CLI（防幻覺關鍵）</h4><p>實測同一題、同參數（<code>read_top=3</code>）下，兩者查出的判決<b>逐筆相同</b>（同一後端）；差別在引用閘門：CLI（<code>twlegalrag pack</code>）會把<b>未讀取理由書</b>的判決也列入 <code>allowed_citations</code>，MCP <code>dr-lawbot:search_bundle</code> 則正確歸入 <code>unread_candidates</code>。故技能一律走 MCP；若改用 CLI，務必令 <code>read-top = 檢索筆數</code>。</p></div></div>
+    </div>
+  </section>
+
+  <footer>
+    <strong style="color:var(--ink-2)">資料來源</strong>
+    <div class="sources">
+      <a href="https://github.com/aa0101181514/tw-legal-rag" target="_blank" rel="noopener">github.com/aa0101181514/tw-legal-rag</a>
+      <a href="https://github.com/lawchat-oss/mcp-taiwan-legal-db" target="_blank" rel="noopener">github.com/lawchat-oss/mcp-taiwan-legal-db</a>
+    </div>
+    <div class="disclaimer">
+      <b>註記與免責：</b>本報告依據兩專案 2026-07 官方 README 與工具定義，並含<b>雙邊本機實測</b>（twlegalrag CLI 語義查詢；mcp-taiwan-legal-db 直呼 <code>JudicialSearchClient</code> 之關鍵字查詢）——召回結果與延遲為單次量測，隨資料更新與網路狀況變動，非嚴格 benchmark。判決筆數「約 2,200 萬」為 tw-legal-rag README 宣稱值，未經獨立查核。兩工具皆為<b>非官方</b>之公開資料查詢工具，實際引用法律文件時仍應以司法院、法務部官方來源為準。本內容僅供技術選型參考，不構成法律意見。
+    </div>
+  </footer>
+</main>
+
+<script>
+  // 主題切換：跟隨系統，可手動覆蓋（Artifact sandbox 不支援 localStorage，故僅記憶於當前 session 記憶體）
+  (function () {
+    var root = document.documentElement;
+    var btn = document.getElementById('themeBtn');
+    var label = document.getElementById('themeLabel');
+    var icon = document.getElementById('themeIcon');
+    var sunPath = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4l1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>';
+    var moonPath = '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>';
+    function apply(mode) {
+      root.setAttribute('data-theme', mode);
+      var dark = mode === 'dark';
+      label.textContent = dark ? '深色' : '淺色';
+      icon.innerHTML = dark ? moonPath : sunPath;
+    }
+    var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    apply(prefersDark ? 'dark' : 'light');
+    btn.addEventListener('click', function () {
+      apply(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    });
+  })();
+
+  // 進場淡入
+  (function () {
+    var els = document.querySelectorAll('.fade');
+    if (!('IntersectionObserver' in window)) { els.forEach(function (e) { e.classList.add('in'); }); return; }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } });
+    }, { threshold: 0.08 });
+    els.forEach(function (e) { io.observe(e); });
+  })();
+</script>

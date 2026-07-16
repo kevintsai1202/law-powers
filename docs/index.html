@@ -1,0 +1,1032 @@
+<!doctype html>
+<html lang="zh-Hant" class="light-mode">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="law-powers 是一套為台灣法律攻防打造的 AI 技能包，整合語意判例檢索、官方法源查證、引用驗證與法律文件校訂。">
+  <meta name="theme-color" content="#f8fafc">
+  <meta property="og:title" content="law-powers｜讓 AI 的每一句法律主張都有依據">
+  <meta property="og:description" content="雙軌檢索、引用驗證、廢棄判決防護與台灣法律語體，一套真正能查證的法律 AI 工作流。">
+  <meta property="og:type" content="website">
+  <title>law-powers｜台灣法律 AI 技能包</title>
+  <style>
+    :root {
+      --bg-primary: #f8fafc;
+      --bg-secondary: #ffffff;
+      --bg-soft: #f1f5f9;
+      --bg-hover: #f8fafc;
+      --border: rgba(15, 23, 42, 0.08);
+      --border-strong: rgba(15, 23, 42, 0.16);
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+      --brand: #059669;
+      --brand-bright: #10b981;
+      --brand-soft: rgba(5, 150, 105, 0.08);
+      --brand-border: rgba(5, 150, 105, 0.18);
+      --blue: #2563eb;
+      --blue-soft: rgba(37, 99, 235, 0.08);
+      --danger: #dc2626;
+      --danger-soft: rgba(220, 38, 38, 0.06);
+      --nav-bg: rgba(248, 250, 252, 0.84);
+      --terminal: #0b0f14;
+      --terminal-border: rgba(255, 255, 255, 0.08);
+      --terminal-text: #9ca3af;
+      --terminal-green: #34d399;
+      --terminal-blue: #60a5fa;
+      --shadow: 0 28px 70px -36px rgba(15, 23, 42, 0.34);
+      --font-sans: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", sans-serif;
+      --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      --max-width: 1160px;
+    }
+
+    html.dark-mode {
+      --bg-primary: #07090d;
+      --bg-secondary: #0d1117;
+      --bg-soft: #111722;
+      --bg-hover: #121923;
+      --border: rgba(255, 255, 255, 0.07);
+      --border-strong: rgba(255, 255, 255, 0.15);
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --brand: #34d399;
+      --brand-bright: #6ee7b7;
+      --brand-soft: rgba(52, 211, 153, 0.08);
+      --brand-border: rgba(52, 211, 153, 0.2);
+      --blue: #60a5fa;
+      --blue-soft: rgba(96, 165, 250, 0.09);
+      --danger: #f87171;
+      --danger-soft: rgba(248, 113, 113, 0.08);
+      --nav-bg: rgba(7, 9, 13, 0.84);
+      --shadow: 0 32px 72px -36px rgba(0, 0, 0, 0.8);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      overflow-x: hidden;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      -webkit-font-smoothing: antialiased;
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+
+    a { color: inherit; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    button { font: inherit; }
+    .mono { font-family: var(--font-mono); }
+    .container { width: min(var(--max-width), calc(100% - 48px)); margin-inline: auto; }
+
+    .skip-link {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      z-index: 1000;
+      padding: 10px 14px;
+      border-radius: 8px;
+      background: var(--text-primary);
+      color: var(--bg-primary);
+      transform: translateY(-160%);
+      transition: transform 0.2s ease;
+    }
+    .skip-link:focus { transform: translateY(0); }
+
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid var(--border);
+      background: var(--nav-bg);
+      backdrop-filter: blur(16px);
+    }
+    .nav-inner {
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-primary);
+      text-decoration: none;
+      font-weight: 760;
+      letter-spacing: -0.03em;
+    }
+    .brand-mark {
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--brand-border);
+      border-radius: 8px;
+      background: var(--brand-soft);
+      color: var(--brand);
+    }
+    .brand-mark svg { width: 17px; height: 17px; }
+    .nav-actions { display: flex; align-items: center; gap: 20px; }
+    .nav-links { display: flex; align-items: center; gap: 24px; }
+    .nav-link {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      transition: color 0.2s ease;
+    }
+    .nav-link:hover, .nav-link:focus-visible { color: var(--text-primary); }
+    .icon-button {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      background: var(--bg-secondary);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+    }
+    .icon-button:hover { border-color: var(--border-strong); color: var(--text-primary); transform: translateY(-1px); }
+    .icon-button svg { width: 17px; height: 17px; }
+
+    .hero {
+      position: relative;
+      padding: 118px 0 104px;
+      text-align: center;
+    }
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 50%;
+      width: min(900px, 100vw);
+      height: 560px;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 35% 20%, rgba(16, 185, 129, 0.11), transparent 36%),
+        radial-gradient(circle at 68% 36%, rgba(37, 99, 235, 0.08), transparent 34%);
+      transform: translateX(-50%);
+      filter: blur(6px);
+    }
+    .hero-content { position: relative; z-index: 1; }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 24px;
+      color: var(--brand);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--brand-bright);
+      box-shadow: 0 0 0 5px var(--brand-soft);
+      animation: pulse 2.4s ease-in-out infinite;
+    }
+    @keyframes pulse { 50% { opacity: 0.42; } }
+    .hero h1 {
+      max-width: 900px;
+      margin: 0 auto;
+      font-size: clamp(44px, 7vw, 78px);
+      line-height: 1.08;
+      letter-spacing: -0.058em;
+      text-wrap: balance;
+    }
+    .gradient-text {
+      background: linear-gradient(100deg, var(--brand) 6%, var(--brand-bright) 44%, var(--blue) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .hero-subhead {
+      max-width: 690px;
+      margin: 26px auto 0;
+      color: var(--text-secondary);
+      font-size: 18px;
+      line-height: 1.8;
+      text-wrap: pretty;
+    }
+    .hero-actions {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 34px;
+    }
+    .button {
+      min-height: 48px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      padding: 0 22px;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 700;
+      transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+    }
+    .button:hover { transform: translateY(-2px); }
+    .button-primary { background: var(--text-primary); color: var(--bg-primary); border-color: var(--text-primary); }
+    .button-secondary { background: var(--bg-secondary); color: var(--text-primary); border-color: var(--border); }
+    .button-secondary:hover { border-color: var(--border-strong); }
+    .button svg { width: 17px; height: 17px; }
+    .hero-meta {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 12px 28px;
+      margin-top: 28px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+    .hero-meta span { display: inline-flex; align-items: center; gap: 7px; }
+    .hero-meta svg { width: 13px; height: 13px; color: var(--brand); }
+
+    .terminal-shell {
+      position: relative;
+      width: min(820px, calc(100% - 32px));
+      margin: 70px auto 0;
+      text-align: left;
+    }
+    .terminal-shell::before {
+      content: "";
+      position: absolute;
+      inset: 18% 8% -12%;
+      z-index: -1;
+      background: rgba(15, 23, 42, 0.25);
+      filter: blur(40px);
+      border-radius: 32px;
+    }
+    .terminal {
+      overflow: hidden;
+      border: 1px solid var(--terminal-border);
+      border-radius: 12px;
+      background: var(--terminal);
+      color: var(--terminal-text);
+      box-shadow: 0 30px 70px -32px rgba(2, 6, 23, 0.78);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.8;
+    }
+    .terminal-bar {
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      border-bottom: 1px solid var(--terminal-border);
+      background: rgba(255, 255, 255, 0.02);
+      color: #6b7280;
+      font-size: 10px;
+    }
+    .terminal-dots { display: flex; gap: 7px; }
+    .terminal-dots i { width: 8px; height: 8px; border-radius: 50%; background: #374151; }
+    .terminal-body { padding: 24px 28px 28px; }
+    .terminal-line { display: flex; gap: 12px; }
+    .terminal-line + .terminal-line { margin-top: 3px; }
+    .prompt { color: var(--terminal-green); }
+    .t-green { color: var(--terminal-green); }
+    .t-blue { color: var(--terminal-blue); }
+    .t-white { color: #e5e7eb; }
+    .terminal-result {
+      margin: 12px 0;
+      padding: 11px 14px;
+      border: 1px solid rgba(52, 211, 153, 0.15);
+      border-radius: 6px;
+      background: rgba(52, 211, 153, 0.05);
+    }
+
+    .section { padding: 112px 0; }
+    .section-border { border-top: 1px solid var(--border); }
+    .section-head { max-width: 720px; margin: 0 auto 54px; text-align: center; }
+    .section-kicker {
+      margin: 0 0 14px;
+      color: var(--brand);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+    .section-title {
+      margin: 0;
+      font-size: clamp(32px, 4vw, 48px);
+      line-height: 1.16;
+      letter-spacing: -0.045em;
+      text-wrap: balance;
+    }
+    .section-desc {
+      margin: 18px auto 0;
+      color: var(--text-secondary);
+      font-size: 16px;
+      line-height: 1.8;
+    }
+
+    .story-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 24px;
+      align-items: stretch;
+    }
+    .story-card, .card {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--bg-secondary);
+      box-shadow: var(--shadow);
+    }
+    .story-main { padding: clamp(30px, 5vw, 54px); }
+    .quote-mark {
+      color: var(--brand);
+      font-family: Georgia, serif;
+      font-size: 60px;
+      line-height: 0.75;
+    }
+    .story-quote {
+      margin: 22px 0 0;
+      font-size: clamp(24px, 3vw, 36px);
+      line-height: 1.4;
+      letter-spacing: -0.035em;
+    }
+    .story-copy { margin: 24px 0 0; color: var(--text-secondary); font-size: 16px; line-height: 1.85; }
+    .pain-list { display: grid; gap: 12px; padding: 22px; }
+    .pain-item {
+      padding: 22px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--bg-soft);
+    }
+    .pain-item strong { display: block; margin-bottom: 7px; font-size: 15px; }
+    .pain-item p { margin: 0; color: var(--text-secondary); font-size: 14px; line-height: 1.65; }
+    .pain-icon {
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 14px;
+      border-radius: 8px;
+      background: var(--danger-soft);
+      color: var(--danger);
+    }
+    .pain-icon svg { width: 16px; height: 16px; }
+
+    .tool-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+    .tool-card { position: relative; overflow: hidden; padding: 38px; }
+    .tool-card::after {
+      content: "";
+      position: absolute;
+      right: -70px;
+      bottom: -80px;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: var(--brand-soft);
+      filter: blur(4px);
+    }
+    .tool-card.blue::after { background: var(--blue-soft); }
+    .tool-top { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .tool-icon {
+      width: 46px;
+      height: 46px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--brand-border);
+      border-radius: 11px;
+      background: var(--brand-soft);
+      color: var(--brand);
+    }
+    .tool-card.blue .tool-icon { border-color: rgba(37, 99, 235, 0.2); background: var(--blue-soft); color: var(--blue); }
+    .tool-icon svg { width: 22px; height: 22px; }
+    .tool-tag { color: var(--text-muted); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; }
+    .tool-card h3 { position: relative; z-index: 1; margin: 28px 0 0; font-size: 23px; letter-spacing: -0.03em; }
+    .tool-card > p { position: relative; z-index: 1; margin: 14px 0 0; color: var(--text-secondary); line-height: 1.75; }
+    .tool-list { position: relative; z-index: 1; display: grid; gap: 10px; margin: 24px 0 0; padding: 0; list-style: none; }
+    .tool-list li { display: flex; align-items: flex-start; gap: 10px; color: var(--text-secondary); font-size: 14px; line-height: 1.55; }
+    .tool-list svg { flex: 0 0 auto; width: 15px; height: 15px; margin-top: 3px; color: var(--brand); }
+    .tool-card.blue .tool-list svg { color: var(--blue); }
+    .text-link {
+      position: relative;
+      z-index: 1;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      margin-top: 26px;
+      color: var(--brand);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .tool-card.blue .text-link { color: var(--blue); }
+    .text-link svg { width: 14px; height: 14px; }
+
+    .workflow-frame { padding: clamp(26px, 5vw, 54px); }
+    .workflow-grid {
+      display: grid;
+      grid-template-columns: 0.8fr 1.15fr 0.8fr;
+      gap: 18px;
+      align-items: center;
+    }
+    .flow-stack { display: grid; gap: 14px; }
+    .flow-node {
+      position: relative;
+      padding: 20px;
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      background: var(--bg-soft);
+    }
+    .flow-node.primary { border-color: var(--brand-border); background: var(--brand-soft); }
+    .flow-node.blue { border-color: rgba(37, 99, 235, 0.18); background: var(--blue-soft); }
+    .flow-node h3 { margin: 0; font-size: 15px; letter-spacing: -0.015em; }
+    .flow-node p { margin: 7px 0 0; color: var(--text-secondary); font-size: 12px; line-height: 1.55; }
+    .flow-node .mono { display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 9px; letter-spacing: 0.1em; }
+    .flow-core {
+      position: relative;
+      padding: 34px;
+      border: 1px solid var(--brand-border);
+      border-radius: 16px;
+      background: linear-gradient(145deg, var(--bg-secondary), var(--brand-soft));
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+    .flow-core::before, .flow-core::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      width: 18px;
+      border-top: 1px dashed var(--brand);
+    }
+    .flow-core::before { right: 100%; }
+    .flow-core::after { left: 100%; }
+    .flow-core-icon {
+      width: 48px;
+      height: 48px;
+      display: grid;
+      place-items: center;
+      margin: 0 auto 18px;
+      border-radius: 12px;
+      background: var(--brand);
+      color: white;
+      box-shadow: 0 0 0 8px var(--brand-soft);
+    }
+    .flow-core-icon svg { width: 23px; height: 23px; }
+    .flow-core h3 { margin: 0; font-size: 20px; }
+    .flow-core p { margin: 10px 0 0; color: var(--text-secondary); font-size: 13px; line-height: 1.65; }
+    .trust-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 24px;
+    }
+    .trust-item { padding: 17px; border: 1px solid var(--border); border-radius: 9px; background: var(--bg-soft); }
+    .trust-item .mono { color: var(--brand); font-size: 9px; letter-spacing: 0.1em; }
+    .trust-item strong { display: block; margin-top: 7px; font-size: 13px; }
+
+    .bento { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .feature-card { min-height: 240px; padding: 30px; transition: transform 0.2s ease, border-color 0.2s ease; }
+    .feature-card:hover { transform: translateY(-3px); border-color: var(--border-strong); }
+    .feature-card.span-2 { grid-column: span 2; }
+    .feature-number { color: var(--brand); font-family: var(--font-mono); font-size: 11px; font-weight: 700; }
+    .feature-card h3 { margin: 28px 0 0; font-size: 20px; letter-spacing: -0.025em; }
+    .feature-card p { margin: 12px 0 0; color: var(--text-secondary); font-size: 14px; line-height: 1.75; }
+    .feature-code {
+      margin-top: 24px;
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg-soft);
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      line-height: 1.7;
+    }
+    .feature-code span { color: var(--brand); }
+
+    .battle-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+    .battle-card { overflow: hidden; }
+    .battle-head { padding: 32px; border-bottom: 1px solid var(--border); }
+    .battle-label { color: var(--brand); font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: 0.12em; }
+    .battle-card.defense .battle-label { color: var(--blue); }
+    .battle-head h3 { margin: 10px 0 0; font-size: 28px; letter-spacing: -0.035em; }
+    .battle-list { margin: 0; padding: 8px 32px 28px; list-style: none; }
+    .battle-list li { display: grid; grid-template-columns: 30px 1fr; gap: 14px; padding: 20px 0; border-bottom: 1px solid var(--border); }
+    .battle-list li:last-child { border-bottom: 0; }
+    .battle-list b {
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--brand-soft);
+      color: var(--brand);
+      font-family: var(--font-mono);
+      font-size: 10px;
+    }
+    .battle-card.defense .battle-list b { background: var(--blue-soft); color: var(--blue); }
+    .battle-list strong { display: block; font-size: 14px; }
+    .battle-list p { margin: 6px 0 0; color: var(--text-secondary); font-size: 13px; line-height: 1.65; }
+
+    .honesty {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 42px;
+      align-items: center;
+      padding: clamp(34px, 6vw, 64px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--bg-secondary);
+      box-shadow: var(--shadow);
+    }
+    .honesty h2 { margin: 0; font-size: clamp(30px, 4vw, 46px); line-height: 1.18; letter-spacing: -0.045em; }
+    .honesty > div > p { margin: 18px 0 0; color: var(--text-secondary); line-height: 1.8; }
+    .honesty-list { display: grid; gap: 12px; }
+    .honesty-item { display: flex; gap: 13px; padding: 16px; border: 1px solid var(--border); border-radius: 9px; background: var(--bg-soft); }
+    .honesty-item svg { flex: 0 0 auto; width: 18px; height: 18px; color: var(--brand); }
+    .honesty-item strong { display: block; font-size: 13px; }
+    .honesty-item span { display: block; margin-top: 5px; color: var(--text-secondary); font-size: 12px; line-height: 1.55; }
+
+    .cta-card {
+      position: relative;
+      overflow: hidden;
+      padding: clamp(42px, 7vw, 78px);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: var(--bg-secondary);
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+    .cta-card::before {
+      content: "";
+      position: absolute;
+      inset: auto 10% -70% 10%;
+      height: 280px;
+      border-radius: 50%;
+      background: rgba(16, 185, 129, 0.14);
+      filter: blur(50px);
+    }
+    .cta-card > * { position: relative; z-index: 1; }
+    .cta-card h2 { max-width: 760px; margin: 0 auto; font-size: clamp(34px, 5vw, 56px); line-height: 1.15; letter-spacing: -0.05em; }
+    .cta-card p { max-width: 640px; margin: 18px auto 0; color: var(--text-secondary); line-height: 1.8; }
+    .install-box {
+      width: min(670px, 100%);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin: 30px auto 0;
+      padding: 12px 12px 12px 18px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      background: var(--bg-soft);
+      text-align: left;
+    }
+    .install-box code { min-width: 0; overflow: hidden; color: var(--text-secondary); font-family: var(--font-mono); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+    .copy-button { flex: 0 0 auto; min-height: 34px; padding: 0 12px; border: 1px solid var(--border); border-radius: 7px; background: var(--bg-secondary); color: var(--text-primary); cursor: pointer; font-size: 11px; font-weight: 700; }
+    .copy-button:hover { border-color: var(--border-strong); }
+
+    footer { padding: 36px 0; border-top: 1px solid var(--border); }
+    .footer-inner { display: flex; align-items: center; justify-content: space-between; gap: 20px; color: var(--text-muted); font-size: 12px; }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 18px; }
+    .footer-links a { color: var(--text-secondary); text-decoration: none; }
+    .footer-links a:hover { color: var(--text-primary); }
+
+    .reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.65s ease, transform 0.65s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 960px) {
+      .nav-links { display: none; }
+      .hero { padding: 92px 0 80px; }
+      .section { padding: 86px 0; }
+      .story-grid, .tool-grid, .battle-grid, .honesty { grid-template-columns: 1fr; }
+      .workflow-grid { grid-template-columns: 1fr; }
+      .flow-core::before, .flow-core::after { display: none; }
+      .trust-strip { grid-template-columns: repeat(2, 1fr); }
+      .bento { grid-template-columns: repeat(2, 1fr); }
+      .feature-card.span-2 { grid-column: span 2; }
+    }
+
+    @media (max-width: 640px) {
+      .container { width: min(100% - 32px, var(--max-width)); }
+      .nav-inner { min-height: 64px; }
+      .nav-actions .button { display: none; }
+      .hero { padding-top: 76px; }
+      .hero h1 { font-size: clamp(39px, 12vw, 56px); }
+      .hero-subhead { font-size: 16px; }
+      .hero-actions { flex-direction: column; }
+      .hero-actions .button { width: 100%; }
+      .terminal-shell { width: 100%; }
+      .terminal { font-size: 10px; }
+      .terminal-body { padding: 19px 17px 22px; }
+      .terminal-line { gap: 8px; }
+      .section { padding: 72px 0; }
+      .section-head { margin-bottom: 38px; text-align: left; }
+      .section-desc { margin-left: 0; }
+      .story-main, .tool-card, .workflow-frame, .feature-card, .battle-head { padding: 26px; }
+      .pain-list { padding: 14px; }
+      .trust-strip, .bento { grid-template-columns: 1fr; }
+      .feature-card.span-2 { grid-column: span 1; }
+      .battle-list { padding-inline: 26px; }
+      .honesty { gap: 28px; padding: 28px; }
+      .install-box { align-items: stretch; flex-direction: column; }
+      .install-box code { white-space: normal; overflow-wrap: anywhere; }
+      .copy-button { min-height: 40px; }
+      .footer-inner { align-items: flex-start; flex-direction: column; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+      .reveal { opacity: 1; transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">跳至主要內容</a>
+
+  <header class="nav" data-od-id="site-nav">
+    <div class="container nav-inner">
+      <a class="brand" href="#top" aria-label="law-powers 首頁">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v18M5 6h14M7 6l-3 6h6L7 6Zm10 0-3 6h6l-3-6ZM8 21h8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <span>law-powers</span>
+      </a>
+      <div class="nav-actions">
+        <nav class="nav-links" aria-label="主要導覽">
+          <a class="nav-link" href="#tools">開源工具</a>
+          <a class="nav-link" href="#workflow">工作流程</a>
+          <a class="nav-link" href="#skills">技能</a>
+          <a class="nav-link" href="#battle">法律攻防</a>
+        </nav>
+        <button class="icon-button" id="theme-toggle" type="button" aria-label="切換深淺色模式">
+          <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36A7 7 0 0 1 12 3Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <a class="button button-secondary" href="https://github.com/kevintsai1202/law-powers" target="_blank" rel="noopener noreferrer">
+          GitHub
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m9 18 6-6-6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero" id="top" data-od-id="hero">
+      <div class="container hero-content">
+        <div class="eyebrow"><span class="status-dot"></span> Open source · Taiwan legal AI</div>
+        <h1>讓 AI 寫得出法律文件，<br><span class="gradient-text">也交代得出每一句依據</span></h1>
+        <p class="hero-subhead">一套為台灣法律攻防打造的 AI 技能包。從案情梳理、雙軌判例檢索、官方法源查證，到引用驗證與書狀校訂，讓 AI 不再只是一本正經地說得像真的。</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="https://github.com/kevintsai1202/law-powers" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .7a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2.23c-3.23.7-3.91-1.37-3.91-1.37-.53-1.34-1.29-1.7-1.29-1.7-1.05-.72.08-.7.08-.7 1.17.08 1.78 1.2 1.78 1.2 1.04 1.77 2.72 1.26 3.38.96.1-.75.41-1.26.74-1.55-2.58-.29-5.29-1.29-5.29-5.68 0-1.26.45-2.28 1.2-3.08-.12-.3-.52-1.48.11-3.07 0 0 .98-.31 3.16 1.18a10.98 10.98 0 0 1 5.76 0c2.19-1.49 3.16-1.18 3.16-1.18.63 1.59.23 2.77.11 3.07.75.8 1.2 1.82 1.2 3.08 0 4.4-2.72 5.38-5.31 5.67.42.36.79 1.06.79 2.14v3.18c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .7Z"/></svg>
+            在 GitHub 查看專案
+          </a>
+          <a class="button button-secondary" href="#workflow">看看它如何防幻覺</a>
+        </div>
+        <div class="hero-meta">
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6" stroke-linecap="round"/></svg>司法院與全國法規資料庫</span>
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6" stroke-linecap="round"/></svg>約 2,200 萬筆裁判語意檢索</span>
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6" stroke-linecap="round"/></svg>Prompt-only · Skills + MCP</span>
+        </div>
+
+        <div class="terminal-shell reveal" aria-label="law-powers 執行示意">
+          <div class="terminal">
+            <div class="terminal-bar"><span class="terminal-dots"><i></i><i></i><i></i></span><span>legal-research / trust-gate</span><span>● verified</span></div>
+            <div class="terminal-body">
+              <div class="terminal-line"><span class="prompt">$</span><span class="t-white">law-powers research</span><span>"買到漏水屋，賣方事前沒有告知"</span></div>
+              <div class="terminal-line"><span class="t-green">[1/4]</span><span>口語案情 → 物之瑕疵擔保／解除契約／損害賠償</span></div>
+              <div class="terminal-line"><span class="t-green">[2/4]</span><span>啟動雙軌：<span class="t-blue">dr-lawbot semantic</span> + <span class="t-blue">taiwan-legal-db exact</span></span></div>
+              <div class="terminal-line"><span class="t-green">[3/4]</span><span>依司法院 JID 合併去重，檢查理由書與審級關係</span></div>
+              <div class="terminal-result"><span class="t-green">✓ TRUST GATE PASSED</span><br><span>僅保留已讀全文、可回查且未被上級審廢棄的裁判。</span></div>
+              <div class="terminal-line"><span class="t-green">[4/4]</span><span>輸出：爭點、請求權基礎、攻防論點、證據缺口、引用來源</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-border" id="story" data-od-id="origin-story">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="section-kicker">Why law-powers</p>
+          <h2 class="section-title">AI 很會寫，卻不代表它真的懂法律</h2>
+          <p class="section-desc">這個專案不是從產品會議開始，而是從一場真實的應訴經驗開始。</p>
+        </div>
+        <div class="story-grid">
+          <article class="story-card story-main reveal">
+            <div class="quote-mark" aria-hidden="true">“</div>
+            <p class="story-quote">案件最後雖然全勝，但 AI 寫出的訴狀與法律文件，曾經漏洞百出。</p>
+            <p class="story-copy">當爭議金額不高、請律師的成本可能超過案件本身，自己研究似乎是合理選擇。真正開始之後才發現：AI 可以幾秒鐘生成一份看似完整的答辯，但不存在的判決、錯置的裁判意旨與失準的台灣法律用語，都必須自己一筆一筆查。</p>
+          </article>
+          <div class="story-card pain-list reveal">
+            <div class="pain-item">
+              <span class="pain-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 9v4m0 4h.01M10.3 3.8 2.6 17.2A2 2 0 0 0 4.3 20h15.4a2 2 0 0 0 1.7-2.8L13.7 3.8a2 2 0 0 0-3.4 0Z" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+              <strong>再三要求檢查，幻覺仍然存在</strong>
+              <p>模型的自信不是證據。沒有外部資料來源，它只是在重新組織自己的猜測。</p>
+            </div>
+            <div class="pain-item">
+              <span class="pain-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4" stroke-linecap="round"/></svg></span>
+              <strong>一般人不知道法院使用什麼詞</strong>
+              <p>口語案情與裁判用語之間存在落差，光是找到正確搜尋詞就可能耗掉數個晚上。</p>
+            </div>
+            <div class="pain-item">
+              <span class="pain-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h9l3 3v15H6V3Z" stroke-linejoin="round"/><path d="M9 12h6M9 16h4M14 3v4h4" stroke-linecap="round"/></svg></span>
+              <strong>找到判決，不代表真的讀懂</strong>
+              <p>還要分辨法院見解、當事人主張、上下審結果，以及裁判是否已被廢棄。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-border" id="tools" data-od-id="open-source-tools">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="section-kicker">Open-source foundation</p>
+          <h2 class="section-title">兩套工具，補上法律研究最關鍵的兩塊拼圖</h2>
+          <p class="section-desc">一套負責官方原文與精確定位；一套負責從自然語言案情找出概念相近的裁判。</p>
+        </div>
+        <div class="tool-grid">
+          <article class="card tool-card reveal">
+            <div class="tool-top">
+              <span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19.5V5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2v-1.5Z" stroke-linejoin="round"/><path d="M8 7h6M8 11h6" stroke-linecap="round"/></svg></span>
+              <span class="tool-tag">OFFICIAL SOURCE WRAPPER</span>
+            </div>
+            <h3>mcp-taiwan-legal-db</h3>
+            <p>讓 MCP 相容的 AI 助理直接查詢司法院裁判書、全國法規資料庫及憲法法庭公開資料。</p>
+            <ul class="tool-list">
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6" stroke-linecap="round"/></svg>依法院、年度、案號與案類精確搜尋裁判</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6" stroke-linecap="round"/></svg>取得主文、事實、理由與完整裁判內容</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6" stroke-linecap="round"/></svg>查詢法條、修法沿革、釋字與憲法判決</li>
+            </ul>
+            <a class="text-link" href="https://github.com/lawchat-oss/mcp-taiwan-legal-db" target="_blank" rel="noopener noreferrer">查看開源專案 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6" stroke-linecap="round"/></svg></a>
+          </article>
+
+          <article class="card tool-card blue reveal">
+            <div class="tool-top">
+              <span class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4M8 11h6M11 8v6" stroke-linecap="round"/></svg></span>
+              <span class="tool-tag">SEMANTIC JUDGMENT RETRIEVAL</span>
+            </div>
+            <h3>tw-legal-rag / dr-lawbot</h3>
+            <p>以自然語言描述案情，連接約 2,200 萬筆台灣裁判的語意檢索服務，尋找概念相近但用詞不同的案件。</p>
+            <ul class="tool-list">
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6" stroke-linecap="round"/></svg>語意模糊搜尋，不必先知道完整法律關鍵字</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6" stroke-linecap="round"/></svg>回傳裁判片段、引用連結與審級關係</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6" stroke-linecap="round"/></svg>以 allowed_citations 區分可引用與未讀候選</li>
+            </ul>
+            <a class="text-link" href="https://github.com/aa0101181514/tw-legal-rag" target="_blank" rel="noopener noreferrer">查看開源專案 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6" stroke-linecap="round"/></svg></a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-border" id="workflow" data-od-id="trust-gate-workflow">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="section-kicker">Dual-track trust gate</p>
+          <h2 class="section-title">資料庫只是起點，正確的使用流程才是關鍵</h2>
+          <p class="section-desc">law-powers 把兩套檢索工具編排成雙軌工作流，再用引用白名單、原文核對與廢棄判決防護限制 AI。</p>
+        </div>
+        <div class="card workflow-frame reveal">
+          <div class="workflow-grid">
+            <div class="flow-stack">
+              <div class="flow-node primary"><span class="mono">INPUT</span><h3>口語案情</h3><p>事件時間、當事人、主張、證據與待解問題。</p></div>
+              <div class="flow-node"><span class="mono">QUERY FORMULATION</span><h3>轉成台灣法律用語</h3><p>從日常描述提煉請求權基礎、要件與檢索詞。</p></div>
+            </div>
+            <div class="flow-core">
+              <span class="flow-core-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 5 6v5c0 4.6 2.9 8.2 7 10 4.1-1.8 7-5.4 7-10V6l-7-3Z" stroke-linejoin="round"/><path d="m9 12 2 2 4-5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+              <h3>law-powers 信任閘門</h3>
+              <p>兩軌同時查、依 JID 合併、驗證來源，再決定哪些內容可以進入法律文件。</p>
+            </div>
+            <div class="flow-stack">
+              <div class="flow-node blue"><span class="mono">SEMANTIC TRACK</span><h3>dr-lawbot</h3><p>從案情概念尋找相關裁判，重召回與論理探索。</p></div>
+              <div class="flow-node"><span class="mono">EXACT TRACK</span><h3>taiwan-legal-db</h3><p>關鍵字、案號、法條與官方原文，重精確與查證。</p></div>
+            </div>
+          </div>
+          <div class="trust-strip">
+            <div class="trust-item"><span class="mono">01 · DEDUPE</span><strong>司法院 JID 合併去重</strong></div>
+            <div class="trust-item"><span class="mono">02 · VERIFY</span><strong>逐字核對裁判原文</strong></div>
+            <div class="trust-item"><span class="mono">03 · HISTORY</span><strong>排除已廢棄裁判</strong></div>
+            <div class="trust-item"><span class="mono">04 · FAIL CLOSED</span><strong>無依據就停止回答</strong></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-border" id="skills" data-od-id="skill-suite">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="section-kicker">Five focused skills</p>
+          <h2 class="section-title">從一團混亂的案情，到可查證的法律文件</h2>
+          <p class="section-desc">每項技能只負責一件事，避免在同一個 Prompt 裡混合研究、策略、視覺化與文字校訂。</p>
+        </div>
+        <div class="bento">
+          <article class="card feature-card span-2 reveal">
+            <span class="feature-number">01 / LEGAL-BRAINSTORMING</span>
+            <h3>先把事實、爭點與證據缺口問清楚</h3>
+            <p>在起草書狀以前，逐步整理當事人、時間序、法律關係、對造可能主張與現有證據，避免 AI 在事實不明時搶著下結論。</p>
+            <div class="feature-code"><span>facts</span> → issues → claims → defenses → evidence gaps</div>
+          </article>
+          <article class="card feature-card reveal">
+            <span class="feature-number">02 / LEGAL-RESEARCH</span>
+            <h3>雙軌法源檢索</h3>
+            <p>語意找論理、關鍵字找原文，合併後再逐筆驗證引用資格。</p>
+          </article>
+          <article class="card feature-card reveal">
+            <span class="feature-number">03 / LEGAL-GRAPH</span>
+            <h3>法律關係圖</h3>
+            <p>將事實、法條、判決、爭點、當事人與證據整理成可互動檢視的關係圖。</p>
+          </article>
+          <article class="card feature-card reveal">
+            <span class="feature-number">04 / COMPLIANCE</span>
+            <h3>契約與合規稽核</h3>
+            <p>辨識條款風險、權利義務不對等、法規缺口及需要補強的約定。</p>
+          </article>
+          <article class="card feature-card reveal">
+            <span class="feature-number">05 / WRITING-HUMANIZER</span>
+            <h3>台灣法律文字校訂</h3>
+            <p>移除 AI 痕跡與中國大陸法律用語，同時凍結日期、金額、請求、抗辯與引用，不因潤稿改變法律效果。</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-border" id="battle" data-od-id="legal-battle">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="section-kicker">Offense & defense</p>
+          <h2 class="section-title">不是替你喊得更大聲，而是幫你找到能站得住腳的位置</h2>
+          <p class="section-desc">同一套查證流程，同時服務於提出主張與拆解對方主張。</p>
+        </div>
+        <div class="battle-grid">
+          <article class="card battle-card reveal">
+            <div class="battle-head"><span class="battle-label">OFFENSE / 進攻面</span><h3>把主張建立在要件與證據上</h3></div>
+            <ol class="battle-list">
+              <li><b>01</b><div><strong>建立請求權基礎</strong><p>從事實反推可能適用的法律關係與構成要件。</p></div></li>
+              <li><b>02</b><div><strong>尋找相似裁判論理</strong><p>比較法院在類似事實中如何評價行為、契約與證據。</p></div></li>
+              <li><b>03</b><div><strong>預演對造抗辯</strong><p>在提出主張前先檢查時效、舉證與程序上的弱點。</p></div></li>
+            </ol>
+          </article>
+          <article class="card battle-card defense reveal">
+            <div class="battle-head"><span class="battle-label">DEFENSE / 防守面</span><h3>逐項拆解對方是否真的證明</h3></div>
+            <ol class="battle-list">
+              <li><b>01</b><div><strong>檢查法律要件</strong><p>分辨對方只是陳述故事，還是真的滿足每一項構成要件。</p></div></li>
+              <li><b>02</b><div><strong>攻擊證據鏈缺口</strong><p>確認來源、時間、同一性、證明力與待證事實能否接得起來。</p></div></li>
+              <li><b>03</b><div><strong>驗證對方引用</strong><p>檢查判決是否相關、見解是否被誤讀，以及是否已遭上級審廢棄。</p></div></li>
+            </ol>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-border" data-od-id="honest-limitations">
+      <div class="container">
+        <div class="honesty reveal">
+          <div>
+            <p class="section-kicker">Honest by design</p>
+            <h2>它不能保證勝訴，也不會取代律師</h2>
+            <p>法律結果取決於事實、證據、程序與法院判斷。law-powers 的目標不是製造勝訴承諾，而是降低研究成本與引用幻覺，讓每個論點更容易被人類重新檢查。</p>
+          </div>
+          <div class="honesty-list">
+            <div class="honesty-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 5 6v5c0 4.6 2.9 8.2 7 10 4.1-1.8 7-5.4 7-10V6l-7-3Z" stroke-linejoin="round"/></svg><div><strong>查無資料，就明確說查無資料</strong><span>不以語氣自信填補證據空白，也不捏造法條或裁判字號。</span></div></div>
+            <div class="honesty-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19.5V5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2v-1.5Z" stroke-linejoin="round"/></svg><div><strong>裁判片段只是線索，不等於法律結論</strong><span>重要主張仍須閱讀全文，區分法院見解與當事人陳述。</span></div></div>
+            <div class="honesty-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 8v4l3 2M21 12a9 9 0 1 1-9-9" stroke-linecap="round" stroke-linejoin="round"/></svg><div><strong>期限與高風險程序，仍應尋求專業協助</strong><span>遇到上訴、強制代理或重大財產與人身風險，應諮詢中華民國執業律師。</span></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-border" id="start" data-od-id="final-cta">
+      <div class="container">
+        <div class="cta-card reveal">
+          <p class="section-kicker">Start with evidence</p>
+          <h2>讓 AI 的每一句法律主張，都能交代它從哪裡來</h2>
+          <p>law-powers 是開源的 Prompt-Only 技能包，可搭配 Claude Code、Gemini Agent 等支援 Skills 與 MCP 的 AI 工作環境使用。</p>
+          <div class="install-box">
+            <code id="install-command">git clone https://github.com/kevintsai1202/law-powers.git</code>
+            <button class="copy-button" id="copy-command" type="button">複製指令</button>
+          </div>
+          <div class="hero-actions">
+            <a class="button button-primary" href="https://github.com/kevintsai1202/law-powers" target="_blank" rel="noopener noreferrer">前往 GitHub</a>
+            <a class="button button-secondary" href="legal-search-comparison.html">查看雙軌檢索實測</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer data-od-id="site-footer">
+    <div class="container footer-inner">
+      <span>law-powers · 台灣法律 AI 技能包</span>
+      <div class="footer-links">
+        <a href="https://github.com/kevintsai1202/law-powers" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="https://github.com/lawchat-oss/mcp-taiwan-legal-db" target="_blank" rel="noopener noreferrer">taiwan-legal-db</a>
+        <a href="https://github.com/aa0101181514/tw-legal-rag" target="_blank" rel="noopener noreferrer">tw-legal-rag</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    /**
+     * 依目前主題更新頁面 class、瀏覽器主題色與切換按鈕圖示。
+     * @param {"light"|"dark"} theme 要套用的主題名稱。
+     * @returns {void}
+     */
+    function applyTheme(theme) {
+      const root = document.documentElement;
+      const themeIcon = document.getElementById("theme-icon");
+      const themeMeta = document.querySelector('meta[name="theme-color"]');
+      const isDark = theme === "dark";
+
+      root.classList.toggle("dark-mode", isDark);
+      root.classList.toggle("light-mode", !isDark);
+      themeIcon.innerHTML = isDark
+        ? '<circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41" stroke-linecap="round"></path>'
+        : '<path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36A7 7 0 0 1 12 3Z" stroke-linecap="round" stroke-linejoin="round"></path>';
+      themeMeta.setAttribute("content", isDark ? "#07090d" : "#f8fafc");
+    }
+
+    /**
+     * 讀取使用者先前偏好或作業系統設定，初始化深淺色主題。
+     * @returns {void}
+     */
+    function initializeTheme() {
+      const storedTheme = localStorage.getItem("law-powers-theme");
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      applyTheme(storedTheme || (prefersDark ? "dark" : "light"));
+    }
+
+    /**
+     * 在深色與淺色模式間切換，並把選擇保存到瀏覽器。
+     * @returns {void}
+     */
+    function toggleTheme() {
+      const nextTheme = document.documentElement.classList.contains("dark-mode") ? "light" : "dark";
+      localStorage.setItem("law-powers-theme", nextTheme);
+      applyTheme(nextTheme);
+    }
+
+    /**
+     * 複製安裝指令並短暫回饋操作結果；剪貼簿不可用時採用選取文字備援。
+     * @returns {Promise<void>}
+     */
+    async function copyInstallCommand() {
+      const commandElement = document.getElementById("install-command");
+      const copyButton = document.getElementById("copy-command");
+      const command = commandElement.textContent.trim();
+
+      try {
+        await navigator.clipboard.writeText(command);
+        copyButton.textContent = "已複製";
+      } catch (error) {
+        const selection = window.getSelection();
+        const range = document.createRange();
+        range.selectNodeContents(commandElement);
+        selection.removeAllRanges();
+        selection.addRange(range);
+        copyButton.textContent = "請按 Ctrl+C";
+      }
+
+      window.setTimeout(() => { copyButton.textContent = "複製指令"; }, 1800);
+    }
+
+    /**
+     * 監看頁面區塊是否進入可視範圍，觸發低干擾的淡入動畫。
+     * @returns {void}
+     */
+    function initializeRevealAnimations() {
+      const revealItems = document.querySelectorAll(".reveal");
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        revealItems.forEach((item) => item.classList.add("visible"));
+        return;
+      }
+
+      const observer = new IntersectionObserver((entries, activeObserver) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("visible");
+            activeObserver.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.12 });
+
+      revealItems.forEach((item) => observer.observe(item));
+    }
+
+    initializeTheme();
+    initializeRevealAnimations();
+    document.getElementById("theme-toggle").addEventListener("click", toggleTheme);
+    document.getElementById("copy-command").addEventListener("click", copyInstallCommand);
+  </script>
+</body>
+</html>
