@@ -1,6 +1,6 @@
 # 台灣法律技能包 (law-powers)
 
-> **Code is Law. Evidence is the Gate.**
+> **Law is Code. Evidence is the Gate.**
 >
 > 當 AI 參與法律攻防，提示詞、工具與信任閘門就是約束它的規則；規則要求查證，它才不能靠猜測完成答案。
 
