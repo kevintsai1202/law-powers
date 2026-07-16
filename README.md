@@ -1,5 +1,11 @@
 # 台灣法律技能包 (law-powers)
 
+> **Code is Law. Evidence is the Gate.**
+>
+> 當 AI 參與法律攻防，提示詞、工具與信任閘門就是約束它的規則；規則要求查證，它才不能靠猜測完成答案。
+
+[🌐 查看宣傳網站](https://kevintsai1202.github.io/law-powers/) · [閱讀完整宣傳文宣](docs/promo-copy.md)
+
 本專案是一個為台灣法律工作者與法務人員量身打造的 AI 超能力技能包（基於 Antigravity/Gemini-Agent 框架）。透過精細配置的系統技能與工作流提示，使您的 AI 助理具備嚴謹的台灣法律思維、防幻覺信任閘門，並能無縫調用本機的法律檢索工具。
 
 ## 核心特色
