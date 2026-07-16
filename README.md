@@ -8,6 +8,22 @@
 
 本專案是一個為台灣法律工作者與法務人員量身打造的 AI 超能力技能包（基於 Antigravity/Gemini-Agent 框架）。透過精細配置的系統技能與工作流提示，使您的 AI 助理具備嚴謹的台灣法律思維、防幻覺信任閘門，並能無縫調用本機的法律檢索工具。
 
+## 安裝技能包
+
+建議使用 [Skills CLI](https://skills.sh/) 一次將全部 5 個技能安裝到使用者層級，並套用至系統偵測到的所有支援 Agent：
+
+```powershell
+npx skills add kevintsai1202/law-powers -g --all
+```
+
+若要自行選擇安裝的技能、Agent 與範圍，請改用互動模式：
+
+```powershell
+npx skills add kevintsai1202/law-powers
+```
+
+> 技能安裝完成後，仍需依下方「前置配置要求」設定 `taiwan-legal-db` 與 `dr-lawbot`，才能啟用法規、判決及語意判例檢索。
+
 ## 核心特色
 1. **防幻覺信任閘門 (Trust Gates)**：強制 AI 助理必須先檢索法源（法規、判例）才回答，無據則不臆測。
 2. **嚴格引用驗證 (Citation Verification)**：所有回答均附上法規條項或司法院裁判字號。
