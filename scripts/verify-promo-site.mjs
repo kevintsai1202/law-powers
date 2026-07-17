@@ -108,7 +108,9 @@ async function verifyProfile(browser, profile) {
   assert.ok(await heroImage.isVisible(), `${profile.id}: Hero 圖片不可見`);
   assert.ok(await heroImage.evaluate((image) => image.complete && image.naturalWidth > 0), `${profile.id}: Hero 圖片載入失敗`);
   assert.equal(await page.locator("#tools .tool-card").count(), 2, `${profile.id}: 開源工具卡片數量錯誤`);
-  assert.equal(await page.locator("#skills .feature-card").count(), 5, `${profile.id}: 技能卡片數量錯誤`);
+  assert.equal(await page.locator("#skills .feature-card").count(), 7, `${profile.id}: 技能卡片數量錯誤`);
+  assert.equal(await page.locator("#examples .example-card").count(), 3, `${profile.id}: 使用範例卡片數量錯誤`);
+  assert.equal(await page.locator("#changelog .timeline-group").count(), 3, `${profile.id}: 變更歷程日期節點數量錯誤`);
   assert.ok(await page.locator('[data-od-id="trust-gate-workflow"]').isVisible(), `${profile.id}: 信任閘門區塊不可見`);
 
   const overflow = await page.evaluate(() => ({

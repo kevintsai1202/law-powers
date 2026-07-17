@@ -545,6 +545,37 @@
     }
     .feature-code span { color: var(--brand); }
 
+    /* 使用範例：三情境卡片（prompt 引用框＋技能流程列） */
+    .examples-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .example-card { display: flex; flex-direction: column; padding: 30px; }
+    .example-label { color: var(--brand); font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: 0.08em; }
+    .example-prompt {
+      margin: 18px 0 0;
+      padding: 16px 18px;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--brand);
+      border-radius: 8px;
+      background: var(--bg-soft);
+      font-size: 14px;
+      line-height: 1.75;
+    }
+    .example-card > p { margin: 14px 0 0; color: var(--text-secondary); font-size: 13.5px; line-height: 1.75; }
+    .example-flow { margin-top: auto; padding-top: 18px; color: var(--text-secondary); font-family: var(--font-mono); font-size: 11px; line-height: 1.9; overflow-wrap: anywhere; }
+    .example-flow span { color: var(--brand); }
+
+    /* 變更歷程：日期節點時間軸 */
+    .timeline { max-width: 760px; margin: 0 auto; padding: 0; list-style: none; }
+    .timeline-group { position: relative; padding: 0 0 8px 30px; border-left: 2px solid var(--border); }
+    .timeline-group:last-child { border-left-color: transparent; }
+    .timeline-group::before {
+      content: ""; position: absolute; left: -7px; top: 4px;
+      width: 12px; height: 12px; border-radius: 50%;
+      background: var(--brand); box-shadow: 0 0 0 4px var(--brand-soft);
+    }
+    .timeline-date { color: var(--brand); font-family: var(--font-mono); font-size: 12px; font-weight: 700; letter-spacing: 0.08em; }
+    .timeline-list { margin: 12px 0 26px; padding: 0 0 0 18px; color: var(--text-secondary); font-size: 14px; line-height: 1.85; }
+    .timeline-list li + li { margin-top: 6px; }
+
     .battle-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
     .battle-card { overflow: hidden; }
     .battle-head { padding: 32px; border-bottom: 1px solid var(--border); }
@@ -646,6 +677,7 @@
       .trust-strip { grid-template-columns: repeat(2, 1fr); }
       .bento { grid-template-columns: repeat(2, 1fr); }
       .feature-card.span-2 { grid-column: span 2; }
+      .examples-grid { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 640px) {
@@ -665,7 +697,7 @@
       .section { padding: 72px 0; }
       .section-head { margin-bottom: 38px; text-align: left; }
       .section-desc { margin-left: 0; }
-      .story-main, .tool-card, .workflow-frame, .feature-card, .battle-head { padding: 26px; }
+      .story-main, .tool-card, .workflow-frame, .feature-card, .example-card, .battle-head { padding: 26px; }
       .pain-list { padding: 14px; }
       .trust-strip, .bento { grid-template-columns: 1fr; }
       .feature-card.span-2 { grid-column: span 1; }
@@ -700,7 +732,9 @@
           <a class="nav-link" href="#tools">開源工具</a>
           <a class="nav-link" href="#workflow">工作流程</a>
           <a class="nav-link" href="#skills">技能</a>
+          <a class="nav-link" href="#examples">使用範例</a>
           <a class="nav-link" href="#battle">法律攻防</a>
+          <a class="nav-link" href="#changelog">變更歷程</a>
         </nav>
         <button class="icon-button" id="theme-toggle" type="button" aria-label="切換深淺色模式">
           <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36A7 7 0 0 1 12 3Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -863,7 +897,7 @@
     <section class="section section-border" id="skills" data-od-id="skill-suite">
       <div class="container">
         <div class="section-head reveal">
-          <p class="section-kicker">Five focused skills</p>
+          <p class="section-kicker">Seven focused skills</p>
           <h2 class="section-title">從一團混亂的案情，到可查證的法律文件</h2>
           <p class="section-desc">每項技能只負責一件事，避免在同一個 Prompt 裡混合研究、策略、視覺化與文字校訂。</p>
         </div>
@@ -880,19 +914,60 @@
             <p>語意找論理、關鍵字找原文，合併後再逐筆驗證引用資格。</p>
           </article>
           <article class="card feature-card reveal">
-            <span class="feature-number">03 / LEGAL-GRAPH</span>
+            <span class="feature-number">03 / ELEMENT-ANALYSIS</span>
+            <h3>構成要件涵攝</h3>
+            <p>把法條拆成一項項要件逐一對映本案事實：該當○、不該當✗、事實不明△——△ 直接轉成證據需求清單，不以推測補充事實。</p>
+          </article>
+          <article class="card feature-card reveal">
+            <span class="feature-number">04 / LEGAL-GRAPH</span>
             <h3>法律關係圖</h3>
             <p>將事實、法條、判決、爭點、當事人與證據整理成可互動檢視的關係圖。</p>
           </article>
           <article class="card feature-card reveal">
-            <span class="feature-number">04 / COMPLIANCE</span>
+            <span class="feature-number">05 / COMPLIANCE</span>
             <h3>契約與合規稽核</h3>
             <p>辨識條款風險、權利義務不對等、法規缺口及需要補強的約定。</p>
           </article>
           <article class="card feature-card reveal">
-            <span class="feature-number">05 / WRITING-HUMANIZER</span>
+            <span class="feature-number">06 / WRITING-HUMANIZER</span>
             <h3>台灣法律文字校訂</h3>
             <p>移除 AI 痕跡與中國大陸法律用語，同時凍結日期、金額、請求、抗辯與引用，不因潤稿改變法律效果。</p>
+          </article>
+          <article class="card feature-card span-2 reveal">
+            <span class="feature-number">07 / OFFICIAL-DOCUMENT</span>
+            <h3>政府公文書撰寫</h3>
+            <p>函、書函、公告、簽的段落結構與稱謂、期望目的語，依《文書處理手冊》套用；先判對行文方向（上行／平行／下行），用語才不會全盤用錯。</p>
+            <div class="feature-code"><span>主旨</span> → 說明 → 辦法（函）／擬辦（簽）</div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-border" id="examples" data-od-id="usage-examples">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="section-kicker">Usage examples</p>
+          <h2 class="section-title">一句話的委託，換一條可查證的工作流</h2>
+          <p class="section-desc">三種典型情境：訴訟主線、契約支線與公文輔助——每一步引用什麼、缺什麼證據，都交代得清楚。</p>
+        </div>
+        <div class="examples-grid">
+          <article class="card example-card reveal">
+            <span class="example-label">CASE 01 / 車禍求償</span>
+            <div class="example-prompt">「我騎機車被闖紅燈的計程車撞傷，警方初判表認定對方過失，但我還沒拿到診斷證明書。可以向誰求償？勝算如何？」</div>
+            <p>梳理案情後雙軌檢索靠行連帶責任判例，將《民法》第 184 條拆成六項要件逐一涵攝——「損害」與「因果關係」因缺診斷證明書標 △，直接轉成證據補齊清單，並提示第 188 條、第 191 條之 2 備位主張。</p>
+            <div class="example-flow"><span>brainstorming</span> → <span>research</span> → <span>element-analysis</span> → <span>graph</span></div>
+          </article>
+          <article class="card example-card reveal">
+            <span class="example-label">CASE 02 / 契約審查</span>
+            <div class="example-prompt">「附上我們要簽的軟體委託開發契約草稿，幫我審查風險、標出需要重談的條款。」</div>
+            <p>逐條標示紅／黃／綠風險與修改建議，建立契約→條款→義務三層關係圖並依風險上色，最後把修約說明校訂成自然的台灣法律語體。</p>
+            <div class="example-flow"><span>compliance</span> → <span>graph</span> → <span>writing-humanizer</span></div>
+          </article>
+          <article class="card example-card reveal">
+            <span class="example-label">CASE 03 / 公文撰擬</span>
+            <div class="example-prompt">「公司要發函向主管機關詢問法規適用疑義，幫我擬一份函稿。」</div>
+            <p>先判斷行文方向（上行／平行／下行），再套用「主旨／說明／辦法」段落結構與正確稱謂、期望目的語；引用的法規字號一律先經檢索查證，不憑記憶杜撰。</p>
+            <div class="example-flow"><span>official-document</span> →（法源查證）<span>research</span></div>
           </article>
         </div>
       </div>
@@ -940,6 +1015,41 @@
             <div class="honesty-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 8v4l3 2M21 12a9 9 0 1 1-9-9" stroke-linecap="round" stroke-linejoin="round"/></svg><div><strong>期限與高風險程序，仍應尋求專業協助</strong><span>遇到上訴、強制代理或重大財產與人身風險，應諮詢中華民國執業律師。</span></div></div>
           </div>
         </div>
+      </div>
+    </section>
+
+    <section class="section section-border" id="changelog" data-od-id="changelog">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="section-kicker">Changelog</p>
+          <h2 class="section-title">變更歷程</h2>
+          <p class="section-desc">技能包的每一次演進，都和判決引用一樣可以被追溯。</p>
+        </div>
+        <ol class="timeline reveal">
+          <li class="timeline-group">
+            <span class="timeline-date">2026-07-17</span>
+            <ul class="timeline-list">
+              <li>新增 legal-element-analysis 構成要件涵攝技能（○／✗／△ 涵攝表、證據缺口清單），3D 渲染器同步支援要件節點視覺化。</li>
+              <li>新增 official-document-drafting 政府公文書撰寫技能（社群貢獻 PR #5）。</li>
+              <li>legal-graph 新增契約→條款→義務三層模型與風險評級上色。</li>
+              <li>判例檢索改為雙軌並行：語意＋關鍵字同回合查詢、JID 合併去重。</li>
+            </ul>
+          </li>
+          <li class="timeline-group">
+            <span class="timeline-date">2026-07-16</span>
+            <ul class="timeline-list">
+              <li>新增 legal-writing-humanizer 台灣法律文字校訂技能。</li>
+              <li>宣傳網站上線（GitHub Pages），確立 Law is Code 品牌識別。</li>
+              <li>安裝方式改為 Skills CLI：npx skills add 一鍵安裝。</li>
+            </ul>
+          </li>
+          <li class="timeline-group">
+            <span class="timeline-date">2026-07-15</span>
+            <ul class="timeline-list">
+              <li>初版發布：legal-brainstorming／legal-research／legal-graph／compliance-verification 四技能＋自包含 3D 法律關係圖渲染器。</li>
+            </ul>
+          </li>
+        </ol>
       </div>
     </section>
 

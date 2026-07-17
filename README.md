@@ -152,3 +152,45 @@ flowchart TD
 | GitHub skills-only 發布包／全域安裝技能 | 相對於 `legal-graph` 技能目錄的 `renderer/data.js` | 同目錄的 `renderer/index.html` |
 
 公開 GitHub repo 隨附的 `skills/legal-graph/renderer/data.js` 是虛構示範資料，可直接開啟預覽；實際產圖時應保留 `window.GRAPH_DATA = { "nodes": [...], "edges": [...] };` 格式並以新資料取代示範內容。
+
+## 使用範例
+
+### 範例一：車禍求償（訴訟主線）
+
+> 「我騎機車被闖紅燈的計程車撞傷，警方初判表認定對方過失，但我還沒拿到診斷證明書。可以向誰求償？勝算如何？」
+
+1. `legal-brainstorming` 梳理當事人、時間序、法律關係與爭點，整理現有證據清單。
+2. `legal-research` 雙軌檢索計程車靠行、僱用人連帶責任等相關判例，逐筆驗證引用資格。
+3. `legal-element-analysis` 將《中華民國民法》第 184 條第 1 項前段拆為六項構成要件逐一涵攝：「損害」與「相當因果關係」因欠缺診斷證明書標 △（事實不明），轉為證據需求清單；另提示第 188 條（僱用人連帶）、第 191 條之 2（動力車輛推定過失）作為備位或併行請求權基礎。
+4. `legal-graph` 產出「法條 → 要件 → 事實該當性」的 3D 涵攝關係圖，△ 要件連向待補證據節點。
+
+### 範例二：契約審查（契約支線）
+
+> 「附上我們要簽的軟體委託開發契約草稿，幫我審查風險、標出需要重談的條款。」
+
+1. `compliance-verification` 逐條標示 🔴／🟡／🟢 風險等級與修改建議。
+2. `legal-graph` 建立「契約 → 條款 → 義務」三層關係圖，條款節點依風險評級上色。
+3. `legal-writing-humanizer` 將修約說明或往來信函校訂為自然的台灣法律語體。
+
+### 範例三：政府公文撰擬（獨立輔助）
+
+> 「公司要發函向主管機關詢問法規適用疑義，幫我擬一份函稿。」
+
+1. `official-document-drafting` 判斷行文方向（上行／平行／下行），套用「主旨／說明／辦法」段落結構與正確的稱謂語、引敘語、期望目的語。
+2. 公文中引用之法規字號依檢索優先原則以 `taiwan-legal-db` 查證（必要時轉 `legal-research`），不憑記憶杜撰。
+
+## 變更歷程
+
+### 2026-07-17
+- 新增 `legal-element-analysis` 構成要件涵攝技能（○／✗／△ 涵攝表、證據缺口清單），3D 渲染器同步支援要件節點視覺化。
+- 新增 `official-document-drafting` 政府公文書撰寫技能（社群貢獻 [PR #5](https://github.com/kevintsai1202/law-powers/pull/5)）。
+- `legal-graph` 新增「契約 → 條款 → 義務」三層模型與風險評級上色。
+- 判例檢索改為雙軌並行：語意＋關鍵字同回合查詢、JID 合併去重。
+
+### 2026-07-16
+- 新增 `legal-writing-humanizer` 台灣法律文字校訂技能。
+- 宣傳網站上線（GitHub Pages），確立 Law is Code 品牌識別。
+- 安裝方式改為 Skills CLI（`npx skills add`）。
+
+### 2026-07-15
+- 初版發布：`legal-brainstorming`／`legal-research`／`legal-graph`／`compliance-verification` 四技能＋自包含 3D 法律關係圖渲染器。
