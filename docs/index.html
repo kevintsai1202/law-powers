@@ -576,6 +576,11 @@
     .timeline-list { margin: 12px 0 26px; padding: 0 0 0 18px; color: var(--text-secondary); font-size: 14px; line-height: 1.85; }
     .timeline-list li + li { margin-top: 6px; }
 
+    /* 產生圖譜步驟：右欄資料格式說明 */
+    .guide-note { padding: 24px 32px 30px; }
+    .guide-note .feature-code { margin-top: 0; font-size: 12.5px; }
+    .guide-note p { margin: 16px 0 0; color: var(--text-secondary); font-size: 13.5px; line-height: 1.75; }
+
     .battle-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
     .battle-card { overflow: hidden; }
     .battle-head { padding: 32px; border-bottom: 1px solid var(--border); }
@@ -733,6 +738,7 @@
           <a class="nav-link" href="#workflow">工作流程</a>
           <a class="nav-link" href="#skills">技能</a>
           <a class="nav-link" href="#examples">使用範例</a>
+          <a class="nav-link" href="#graph-guide">產生圖譜</a>
           <a class="nav-link" href="#battle">法律攻防</a>
           <a class="nav-link" href="#changelog">變更歷程</a>
         </nav>
@@ -968,6 +974,35 @@
             <div class="example-prompt">「公司要發函向主管機關詢問法規適用疑義，幫我擬一份函稿。」</div>
             <p>先判斷行文方向（上行／平行／下行），再套用「主旨／說明／辦法」段落結構與正確稱謂、期望目的語；引用的法規字號一律先經檢索查證，不憑記憶杜撰。</p>
             <div class="example-flow"><span>official-document</span> →（法源查證）<span>research</span></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-border" id="graph-guide" data-od-id="graph-guide">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="section-kicker">3D graph how-to</p>
+          <h2 class="section-title">四個步驟，把案件變成一張 3D 法律關係圖</h2>
+          <p class="section-desc">不需要伺服器與帳號：Agent 負責產資料，瀏覽器直接開頁面，離線也能檢視。</p>
+        </div>
+        <div class="battle-grid">
+          <article class="card battle-card reveal">
+            <div class="battle-head"><span class="battle-label">HOW-TO / 操作步驟</span><h3>從案情到 3D 圖譜</h3></div>
+            <ol class="battle-list">
+              <li><b>01</b><div><strong>對 Agent 下產圖指令</strong><p>例：「幫我把這個案件的事實、法條、判決與爭點整理成法律關係圖」，legal-graph 會組裝 superset 格式的節點與連線資料。</p></div></li>
+              <li><b>02</b><div><strong>Agent 將資料寫入 data.js</strong><p>完整開發專案寫在專案根目錄；skills-only 安裝寫在 skills/legal-graph/renderer/data.js——與 index.html 同組即可。</p></div></li>
+              <li><b>03</b><div><strong>瀏覽器開啟同組 index.html</strong><p>頁面自動讀取 window.GRAPH_DATA 渲染 3D 圖譜（需支援 WebGL）；自包含單檔、離線可用。</p></div></li>
+              <li><b>04</b><div><strong>互動檢視與更新</strong><p>拖曳旋轉、滾輪縮放、點節點看詳情（勝敗徽章／條款風險／要件該當性）、依節點類型篩選；換案件時以新資料覆寫 data.js 再重新整理。</p></div></li>
+            </ol>
+          </article>
+          <article class="card battle-card defense reveal">
+            <div class="battle-head"><span class="battle-label">DATA / 資料格式</span><h3>data.js 只有一條規則</h3></div>
+            <div class="guide-note">
+              <div class="feature-code"><span>window.GRAPH_DATA</span> = {<br>&nbsp;&nbsp;"nodes": [ ... ],<br>&nbsp;&nbsp;"edges": [ ... ]<br>};</div>
+              <p>保留這個格式，其餘交給技能：節點分 11 類（事實、法條、判決、爭點、當事人、證據、契約、條款、義務、要件⋯⋯）、連線分 17 種語意類型，圖例與配色由渲染器自動分流。</p>
+              <p>查證紀律不因視覺化而放鬆——判決引用先經 legal-research 驗證、要件該當性（met）來自涵攝表、條款風險（risk）來自合規審查報告，legal-graph 只彙整、不臆測。</p>
+            </div>
           </article>
         </div>
       </div>

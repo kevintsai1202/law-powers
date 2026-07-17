@@ -153,6 +153,15 @@ flowchart TD
 
 公開 GitHub repo 隨附的 `skills/legal-graph/renderer/data.js` 是虛構示範資料，可直接開啟預覽；實際產圖時應保留 `window.GRAPH_DATA = { "nodes": [...], "edges": [...] };` 格式並以新資料取代示範內容。
 
+### 產生圖譜操作步驟
+
+1. **對 Agent 下產圖指令**：在已安裝技能包的 Agent 中提出需求，例如：「幫我把這個案件的事實、法條、判決與爭點整理成法律關係圖」。`legal-graph` 會依 superset 規格組裝 `{nodes, edges}` JSON。
+2. **先完成前置查證（建議）**：判決引用先經 `legal-research` 驗證；要件該當性（`met`）必須來自 `legal-element-analysis` 涵攝表、條款風險（`risk`）必須來自 `compliance-verification` 審查報告——`legal-graph` 只彙整，不自行臆測。
+3. **確認寫入位置**：Agent 會將資料寫入 `data.js` 並保留 `window.GRAPH_DATA = {...};` 格式，位置依上方「輸出路徑」表——完整開發專案寫專案根目錄，skills-only 安裝寫 `skills/legal-graph/renderer/data.js`。
+4. **開啟渲染頁**：以支援 WebGL 的瀏覽器直接開啟同一組目錄的 `index.html`，頁面會自動讀取 `window.GRAPH_DATA` 渲染 3D 圖譜；自包含單檔，無需伺服器、離線可用。
+5. **互動檢視**：拖曳旋轉、滾輪縮放；點擊節點開啟詳情面板（判決勝敗徽章、條款風險、要件該當性）；對照圖例判讀節點與連線顏色；以節點類型篩選器顯示／隱藏特定類型；同 `family` 標籤之案件叢集可聚焦檢視。
+6. **更新圖譜**：以新的 `{nodes, edges}` 覆寫 `data.js` 後重新整理頁面即可；`index.html` 為打包產物，請勿手動編輯（開發 repo 修改 `index-3d-src.html` 後執行 `python scripts/inline_libs.py` 重建）。
+
 ## 使用範例
 
 ### 範例一：車禍求償（訴訟主線）
