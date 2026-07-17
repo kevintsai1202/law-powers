@@ -581,6 +581,11 @@
     .guide-note .feature-code { margin-top: 0; font-size: 12.5px; }
     .guide-note p { margin: 16px 0 0; color: var(--text-secondary); font-size: 13.5px; line-height: 1.75; }
 
+    /* 產生圖譜步驟：實際渲染畫面擷圖 */
+    .graph-shot { margin: 28px 0 0; }
+    .graph-shot img { display: block; width: 100%; height: auto; border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); }
+    .graph-shot figcaption { margin-top: 12px; color: var(--text-muted); font-size: 12.5px; line-height: 1.7; text-align: center; }
+
     .battle-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
     .battle-card { overflow: hidden; }
     .battle-head { padding: 32px; border-bottom: 1px solid var(--border); }
@@ -1005,6 +1010,10 @@
             </div>
           </article>
         </div>
+        <figure class="graph-shot reveal">
+          <img src="assets/graph-example.png" alt="3D 法律關係圖實際渲染畫面：民法第 184 條構成要件涵攝叢集，含要件該當性配色、證據缺口與判例要件認定連線" width="3200" height="2000">
+          <figcaption>內建虛構示範資料的實際渲染畫面——構成要件涵攝叢集：法條拆解為要件（綠○＝該當、黃△＝事實不明），判例以「要件認定」弧線連向要件（綠＝有利、紅＝不利警示），左側圖例對照節點與連線語意。</figcaption>
+        </figure>
       </div>
     </section>
 

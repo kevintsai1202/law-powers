@@ -112,6 +112,10 @@ async function verifyProfile(browser, profile) {
   assert.equal(await page.locator("#examples .example-card").count(), 3, `${profile.id}: 使用範例卡片數量錯誤`);
   assert.equal(await page.locator("#changelog .timeline-group").count(), 3, `${profile.id}: 變更歷程日期節點數量錯誤`);
   assert.equal(await page.locator("#graph-guide .battle-list li").count(), 4, `${profile.id}: 產生圖譜步驟數量錯誤`);
+  const graphShot = page.locator("#graph-guide .graph-shot img");
+  await graphShot.scrollIntoViewIfNeeded();
+  assert.ok(await graphShot.isVisible(), `${profile.id}: 圖譜示範圖不可見`);
+  assert.ok(await graphShot.evaluate((image) => image.complete && image.naturalWidth > 0), `${profile.id}: 圖譜示範圖載入失敗`);
   assert.ok(await page.locator('[data-od-id="trust-gate-workflow"]').isVisible(), `${profile.id}: 信任閘門區塊不可見`);
 
   const overflow = await page.evaluate(() => ({
