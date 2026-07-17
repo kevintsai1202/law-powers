@@ -10,7 +10,7 @@
 
 ## 安裝技能包
 
-建議使用 [Skills CLI](https://skills.sh/) 一次將全部 5 個技能安裝到使用者層級，並套用至系統偵測到的所有支援 Agent：
+建議使用 [Skills CLI](https://skills.sh/) 一次將全部 6 個技能安裝到使用者層級，並套用至系統偵測到的所有支援 Agent：
 
 ```powershell
 npx skills add kevintsai1202/law-powers -g --all
@@ -126,6 +126,7 @@ flowchart TD
 *   **`legal-graph`**：將案情、法條、判決、爭點、當事人、證據，以及 `contract → clause → obligation` 契約義務三層模型與風險評級彙整為 superset 法律關係圖資料；隨附自包含 3D 渲染器（`skills/legal-graph/renderer/`）可直接檢視。
 *   **`compliance-verification`**：進行合約風險稽核與特定法規合規性檢查。
 *   **`legal-writing-humanizer`**：台灣法律專用的繁體中文校訂技能；將一般中文、中國大陸法律用語或帶有 AI 痕跡的法律文字校訂為自然的台灣法律專業語體，並保護日期、金額、請求、抗辯、引用及契約權利義務不被改動。
+*   **`official-document-drafting`**：政府公文書（函、書函、公告、簽等）撰寫與格式技能；依《文書處理手冊》套用正確段落結構（主旨／說明／辦法或擬辦）與稱謂、引敘、期望目的等公文用語，屬獨立輔助技能，不進入下方訴訟／契約主線。
 
 ### 建議串接流程（端到端）
 
