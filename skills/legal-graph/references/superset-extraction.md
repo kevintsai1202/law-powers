@@ -18,6 +18,7 @@
 | **clause**（契約條款） | 契約有哪些具法律意義的條款？各條款之風險評級為何？ | 契約原文逐條抽取；風險評級**必須**來自 `compliance-verification` 審查報告（🔴→`high`、🟡→`medium`、🟢→`low`），未經審查不標 `risk` | `group: "clause"`、`risk` + 「包含」連線（contract→clause） |
 | **obligation**（契約義務） | 各條款課予誰什麼義務？誰是債務人、誰是債權人？義務屬主給付／從給付／附隨義務？ | 契約原文＋本文件下一節「義務 duty 分類準則」 | `group: "obligation"`、`duty` + 「課予」（clause→obligation）、「負擔」（債務人 party→obligation）、「得請求」（obligation→債權人 party）連線 |
 | **對價／違約效果**（義務間與條款效果關係） | 哪兩個義務互為對價（雙務牽連）？違約金／解除權條款針對哪個義務？ | 契約原文（給付與對待給付之對應；違約條款之標的義務） | `label: "對價"`（obligation↔obligation）、`label: "違約效果"`（效果條款 clause→obligation） |
+| **element**（構成要件涵攝） | 受檢驗法條拆解出哪些要件？各要件之該當性（○/✗/△）為何？△ 要件缺什麼證據？檢索到的判例對哪些要件有明確認定或闡釋？ | `legal-element-analysis` 之涵攝表（**不得臆測 `met`**）；判例認定限 `allowed_citations` 內判決之理由書 | `group: "element"`、`met`（`yes`/`no`/`unknown`）+ 「要件」（law→element）、「該當」（fact→element）、「證據」（element→證據缺口 evidence）、「要件認定」（判例 judgment→element，title 必填認定要旨）連線 |
 
 指示：Agent 產圖時應依上表**盡量抓齊所有維度（聯集精神）**，逐一檢查是否有可補充的 party/plaintiff/evidence/法條關聯/family 資料；契約情境並應抓齊 contract/clause/obligation 三層與對價、違約效果關係；資料不足時，才退回僅產出 `fact`/`law`/`judgment`/`issue` 四類節點的基本格式（見 `SKILL.md` 步驟一之向後相容聲明）。
 

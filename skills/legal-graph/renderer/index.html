@@ -256,6 +256,7 @@
         <div class="legend-row"><span class="swatch" style="background:#6366f1"></span>契約（靛 ⬟）</div>
         <div class="legend-row"><span class="swatch sq" style="background:#64748b"></span>條款（■：風險高＝紅、中＝黃、低＝綠、未評＝灰）</div>
         <div class="legend-row"><span class="swatch" style="background:#f43f5e;border-radius:2px"></span>義務（玫瑰 ▮：主給付＞從給付＞附隨）</div>
+        <div class="legend-row"><span class="swatch" style="background:#22c55e;clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%)"></span>要件（◇：該當＝綠○、不該當＝紅✗、事實不明＝黃△）</div>
       </div>
 
       <div>
@@ -275,6 +276,9 @@
         <div class="legend-row"><span class="swatch sq" style="background:#0d9488"></span>得請求（義務→債權人）</div>
         <div class="legend-row"><span class="swatch sq" style="background:#eab308"></span>對價（義務↔義務，弧線無箭頭）</div>
         <div class="legend-row"><span class="swatch sq" style="background:#ef4444"></span>違約效果（違約條款→義務）</div>
+        <div class="legend-row"><span class="swatch sq" style="background:#0ea5e9"></span>要件（法條→要件，拆解）</div>
+        <div class="legend-row"><span class="swatch sq" style="background:#94a3b8"></span>該當（事實→要件，依該當性上色）</div>
+        <div class="legend-row"><span class="swatch sq" style="background:#38bdf8"></span>要件認定（判例→要件，弧線：有利＝綠、不利＝紅、中性＝天藍）</div>
       </div>
 
       <div>
@@ -361,8 +365,20 @@ c.readability=function(t,n){var i=c(t),r=c(n);return(e.max(i.getLuminance(),r.ge
       risk_high:'#ef4444', risk_medium:'#eab308', risk_low:'#22c55e',
       /* 契約類連線：包含（契約→條款）、課予（條款→義務）、負擔（債務人→義務）、
          得請求（義務→債權人）、對價（義務↔義務，雙務牽連）、違約效果（違約條款→義務） */
-      include:'#94a3b8', impose:'#a855f7', bear:'#f97316', claim:'#0d9488', consideration:'#eab308', breach:'#ef4444'
+      include:'#94a3b8', impose:'#a855f7', bear:'#f97316', claim:'#0d9488', consideration:'#eab308', breach:'#ef4444',
+      /* 構成要件涵攝擴充：element=要件（無 met 時的中性色）；met 該當性配色
+         對應 legal-element-analysis 涵攝表之 ○該當/✗不該當/△事實不明 */
+      element:'#64748b',
+      met_yes:'#22c55e', met_no:'#ef4444', met_unknown:'#eab308',
+      /* 要件認定（判例→要件）：天藍，表示判例對該要件有明確認定或闡釋（他案認定，不影響本案 met） */
+      elemref:'#38bdf8'
     };
+
+    /** element 節點依 met 欄位配色（yes=綠○/no=紅✗/unknown=黃△），未標註時採中性藍灰 */
+    function metColor(n){
+      return n.met==='yes'?COLORS.met_yes : n.met==='no'?COLORS.met_no
+           : n.met==='unknown'?COLORS.met_unknown : COLORS.element;
+    }
 
     /** clause 節點依 risk 欄位配色（high=紅/medium=黃/low=綠），未標註風險時採中性藍灰 */
     function riskColor(n){
@@ -406,6 +422,8 @@ c.readability=function(t,n){var i=c(t),r=c(n);return(e.max(i.getLuminance(),r.ge
           const s = n.duty==='main'?1 : n.duty==='collateral'?0.8 : n.duty==='incidental'?0.65 : 0.8;
           geo=new THREE.CylinderGeometry(4*s,4*s,8*s); color=COLORS.obligation; break;
         }
+        // 構成要件涵攝擴充：要件=二十面體（依 met 該當性上色：該當=綠/不該當=紅/事實不明=黃/未涵攝=灰）
+        case 'element': geo=new THREE.IcosahedronGeometry(4); color=metColor(n); break;
         default: geo=new THREE.SphereGeometry(4); color=COLORS.edgeDefault;
       }
       const mat = new THREE.MeshLambertMaterial({ color });
@@ -444,6 +462,13 @@ c.readability=function(t,n){var i=c(t),r=c(n);return(e.max(i.getLuminance(),r.ge
         label.color = (n.risk==='high'||n.risk==='medium'||n.risk==='low') ? riskColor(n) : '#9db6d6';
         label.textHeight = 3.4; label.position.set(0, 9, 0);
         group.add(label);
+      } else if(n.group==='element'){
+        // 要件節點＝次要小字標籤（涵攝檢視需看見要件名稱），標籤前綴該當性符號、字色隨 met
+        const mark = n.met==='yes'?'○ ' : n.met==='no'?'✗ ' : n.met==='unknown'?'△ ' : '';
+        const label = new SpriteText(mark + (n.label||''));
+        label.color = (n.met==='yes'||n.met==='no'||n.met==='unknown') ? metColor(n) : '#9db6d6';
+        label.textHeight = 3.2; label.position.set(0, 8, 0);
+        group.add(label);
       }
       // 其餘節點不加標籤（點擊詳情面板檢視名稱與內容）
       return group;
@@ -469,16 +494,29 @@ c.readability=function(t,n){var i=c(t),r=c(n);return(e.max(i.getLuminance(),r.ge
         // 對價為雙務契約之牽連關係，雙向對等不加箭頭（同連帶責任之處理）；弧度區隔於直線連線
         case '對價': return {color:COLORS.consideration, width:2, curve:0.3, arrow:0};
         case '違約效果': return {color:COLORS.breach, width:1.6, curve:0.15, arrow:3.5}; // 違約條款 → 義務
+        // ── 構成要件涵攝連線 ──
+        case '要件': return {color:COLORS.law, width:1.2, curve:0, arrow:3};             // 法條 → 要件（拆解）
+        case '該當': return {color:COLORS.edgeDefault, width:1.6, curve:0, arrow:3.5};   // 事實 → 要件（顏色另由 linkColorFn 依 met 分流）
+        case '要件認定': return {color:COLORS.elemref, width:1.3, curve:0.2, arrow:3};   // 判例 → 要件（他案認定/闡釋，弧線區隔本案該當）
         default: return {color:COLORS.edgeDefault, width:1.2, curve:0, arrow:3}; // 適用/引用/其他
       }
     }
 
     /** 連線顏色 accessor：證據連線依 target（evidence 節點）的 favorable 上色，強＝綠、弱＝紅、未標註＝中性灰；
+     *  「該當」連線依 target（element 節點）的 met 上色（該當=綠/不該當=紅/事實不明=黃）；
      *  其餘連線類型沿用 linkStyle 的顏色（修正 Task 1 finding：證據連線原本未依優劣上色） */
     function linkColorFn(l){
       if(l.label==='證據'){
         const t=(typeof l.target==='object')?l.target:null;
         return t ? (t.favorable==='weak'?COLORS.weak:t.favorable==='strong'?COLORS.strong:COLORS.edgeDefault) : COLORS.edgeDefault;
+      }
+      if(l.label==='該當'){
+        const t=(typeof l.target==='object')?l.target:null;
+        return t ? metColor(t) : COLORS.edgeDefault;
+      }
+      // 要件認定連線依 stance 上色：pro=對本案有利（綠）、con=對本案不利/警示（紅）、未標=天藍
+      if(l.label==='要件認定'){
+        return l.stance==='pro'?COLORS.met_yes : l.stance==='con'?COLORS.met_no : COLORS.elemref;
       }
       return linkStyle(l).color;
     }
@@ -552,6 +590,9 @@ c.readability=function(t,n){var i=c(t),r=c(n);return(e.max(i.getLuminance(),r.ge
         if(l.label==='包含') return 45;
         if(l.label==='課予') return 40;
         if(l.label==='負擔'||l.label==='得請求') return 55;
+        // 涵攝叢集內縮：要件貼近所屬法條，事實至要件稍長以保留涵攝視覺動線
+        if(l.label==='要件') return 40;
+        if(l.label==='該當') return 55;
         return 80;
       });
       window.Graph = Graph;
@@ -578,19 +619,21 @@ c.readability=function(t,n){var i=c(t),r=c(n);return(e.max(i.getLuminance(),r.ge
     const detailTitle = document.getElementById('detail-title');
     const detailBody = document.getElementById('detail-body');
 
-    /** status → 勝負徽章文字（沿用舊 3D 圖語意：本資料集原告為電視台、刑案為檢方） */
-    function badgeText(status){
-      return status==='good' ? '電視台／檢方獲支持'
-           : status==='bad'  ? '電視台／檢方未獲支持'
-           : status==='mixed'? '部分支持／理由變更結論不變' : '';
+    /** status → 勝負/有利性徽章文字：優先使用節點自訂之 statusText（各資料集可寫入貼合案件的措辭），
+     *  未提供時退回通用語意（good=對本方有利、bad=對本方不利、mixed=互見） */
+    function badgeText(n){
+      if(n.statusText) return n.statusText;
+      return n.status==='good' ? '對本方有利／勝訴'
+           : n.status==='bad'  ? '對本方不利／敗訴'
+           : n.status==='mixed'? '互見（部分有利）' : '';
     }
 
-    /** 建立勝負徽章元素（依 status 上色）；無 status 回傳 null */
-    function buildStatusBadge(status){
-      const t = badgeText(status); if(!t) return null;
+    /** 建立勝負/有利性徽章元素（依 status 上色，文字依 badgeText）；無 status 回傳 null */
+    function buildStatusBadge(n){
+      const t = badgeText(n); if(!t) return null;
       const b = document.createElement('div');
       b.textContent = t;
-      const c = status==='good'?COLORS.good : status==='bad'?COLORS.bad : COLORS.mixed;
+      const c = n.status==='good'?COLORS.good : n.status==='bad'?COLORS.bad : COLORS.mixed;
       b.style.cssText = 'display:inline-block;padding:4px 12px;border-radius:999px;font-size:0.8rem;font-weight:600;color:#fff;margin-bottom:6px;background:'+c+';';
       return b;
     }
@@ -611,6 +654,17 @@ c.readability=function(t,n){var i=c(t),r=c(n);return(e.max(i.getLuminance(),r.ge
       return duty==='main' ? '主給付義務'
            : duty==='collateral' ? '從給付義務'
            : duty==='incidental' ? '附隨義務' : '';
+    }
+
+    /** 建立要件該當性徽章（對應涵攝表之 ○該當/✗不該當/△事實不明）；無 met 回傳 null */
+    function buildMetBadge(met){
+      const map = { yes:'○ 該當', no:'✗ 不該當', unknown:'△ 事實不明（待補證據）' };
+      const t = map[met]; if(!t) return null;
+      const b = document.createElement('div');
+      b.textContent = t;
+      const c = met==='yes'?COLORS.met_yes : met==='no'?COLORS.met_no : COLORS.met_unknown;
+      b.style.cssText = 'display:inline-block;padding:4px 12px;border-radius:999px;font-size:0.8rem;font-weight:600;color:#fff;margin-bottom:6px;background:'+c+';';
+      return b;
     }
 
     /** 取證據節點供清單顯示用的簡潔文字：own_ev 的 label 已是「被證X：…」直接用；
@@ -681,15 +735,21 @@ c.readability=function(t,n){var i=c(t),r=c(n);return(e.max(i.getLuminance(),r.ge
       detailTitle.textContent = n.label || '';
       detailBody.replaceChildren();
 
-      // 判決節點：勝負徽章（置於描述之前）
+      // 判決節點：勝負/有利性徽章（置於描述之前）
       if(group==='judgment'){
-        const badge = buildStatusBadge(n.status);
+        const badge = buildStatusBadge(n);
         if(badge) detailBody.appendChild(badge);
       }
 
       // 條款節點：風險評級徽章（置於條款原文之前）
       if(group==='clause'){
         const badge = buildRiskBadge(n.risk);
+        if(badge) detailBody.appendChild(badge);
+      }
+
+      // 要件節點：該當性徽章（置於要件內涵之前）
+      if(group==='element'){
+        const badge = buildMetBadge(n.met);
         if(badge) detailBody.appendChild(badge);
       }
 
@@ -748,7 +808,7 @@ c.readability=function(t,n){var i=c(t),r=c(n);return(e.max(i.getLuminance(),r.ge
     function buildFilters(nodes){
       const groups=[...new Set(nodes.map(n=>n.group))];
       const box=document.getElementById('filter-box'); box.replaceChildren();
-      const nameMap={fact:'事實',law:'法條',judgment:'判決',issue:'爭點',party:'當事人',plaintiff:'原告',evidence:'證據',contract:'契約',clause:'條款',obligation:'義務'};
+      const nameMap={fact:'事實',law:'法條',judgment:'判決',issue:'爭點',party:'當事人',plaintiff:'原告',evidence:'證據',contract:'契約',clause:'條款',obligation:'義務',element:'要件'};
       groups.forEach(g=>{ filterState[g]=true;
         const lb=document.createElement('label'); lb.style.cssText='display:flex;gap:6px;font-size:0.8rem;color:var(--text-sub);padding:2px 0;cursor:pointer;';
         const cb=document.createElement('input'); cb.type='checkbox'; cb.checked=true;

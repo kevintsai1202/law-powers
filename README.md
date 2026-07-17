@@ -10,7 +10,7 @@
 
 ## 安裝技能包
 
-建議使用 [Skills CLI](https://skills.sh/) 一次將全部 6 個技能安裝到使用者層級，並套用至系統偵測到的所有支援 Agent：
+建議使用 `npx skills add`（[Skills CLI](https://skills.sh/)）一次將全部 7 個技能安裝到使用者層級，並套用至系統偵測到的所有支援 Agent：
 
 ```powershell
 npx skills add kevintsai1202/law-powers -g --all
@@ -91,6 +91,7 @@ flowchart TD
     U(["使用者：案情 / 契約 / 爭議"])
     LB["legal-brainstorming<br/>案情梳理・釐清爭點・策略規劃"]
     LR["legal-research<br/>雙軌判例檢索・合併去重・引用驗證"]
+    EA["legal-element-analysis<br/>構成要件拆解・逐要件涵攝・證據缺口"]
     LG["legal-graph<br/>彙整為關係圖 superset JSON・契約義務模型"]
     CV["compliance-verification<br/>合約風險稽核・法規合規檢查"]
     LWH["legal-writing-humanizer<br/>台灣法律用語・去 AI 味・法律效果保全"]
@@ -102,6 +103,9 @@ flowchart TD
     U --> LB
     U -. 契約審查入口 .-> CV
     LB --> LR
+    LR --> EA
+    EA --> LG
+    EA --> LWH
     LR --> LG
     LR --> LWH
     CV --> LWH
@@ -123,6 +127,7 @@ flowchart TD
 ## 技能列表 (Skills)
 *   **`legal-brainstorming`**：案情分析與訴訟策略起草前腦力激盪。
 *   **`legal-research`**：以語意與關鍵字雙軌並行檢索台灣判例，合併去重後執行引用驗證、廢棄判決防護與信任閘門。
+*   **`legal-element-analysis`**：將檢索取得之法條拆解為構成要件並逐要件涵攝（民事請求權基礎檢驗、刑事三階層審查），輸出涵攝表、該當性結論與證據缺口清單；要件拆解須有條文或判決依據，禁止自創要件。
 *   **`legal-graph`**：將案情、法條、判決、爭點、當事人、證據，以及 `contract → clause → obligation` 契約義務三層模型與風險評級彙整為 superset 法律關係圖資料；隨附自包含 3D 渲染器（`skills/legal-graph/renderer/`）可直接檢視。
 *   **`compliance-verification`**：進行合約風險稽核與特定法規合規性檢查。
 *   **`legal-writing-humanizer`**：台灣法律專用的繁體中文校訂技能；將一般中文、中國大陸法律用語或帶有 AI 痕跡的法律文字校訂為自然的台灣法律專業語體，並保護日期、金額、請求、抗辯、引用及契約權利義務不被改動。
@@ -132,9 +137,10 @@ flowchart TD
 
 1. **`legal-brainstorming`**：逐步梳理案情、法律關係與爭點。
 2. **`legal-research`**：同一回合並行呼叫 `dr-lawbot:search_bundle`（語意）與 `taiwan-legal-db:search_judgments`（法律關鍵字），依 JID 合併去重後執行引用驗證與廢棄判決防護；法條原文另由 `taiwan-legal-db` 查證。
-3. **`legal-writing-humanizer`（文字交付支線）**：完成法源查證或合規審查後，以繁體中文將法律分析、書狀、契約說明或客戶信函調整為台灣法律語體並移除 AI 痕跡；不得新增主張、法源或改變法律效果。
-4. **`legal-graph`（關係圖支線）**：將事實、法條、判決、爭點、當事人與證據整理為 superset JSON；契約案件另建立 `contract → clause → obligation` 三層結構並對映合規審查風險，被上級審廢棄的判決標記 `overturned`。
-5. **檢視關係圖**：依下方「輸出路徑」將 `{nodes, edges}` 寫入對應的 `data.js`，再以瀏覽器開啟同一組的 `index.html`，即可自動載入互動式法律關係圖。已廢棄判決會以紅框虛線標示。
+3. **`legal-element-analysis`（要件涵攝）**：將查證後的法條拆解為構成要件，逐一對映本案事實（該當○／不該當✗／事實不明△）；✗ 提示備位請求權基礎，△ 轉為證據需求清單，涵攝表可寫入關係圖 `law` 節點。
+4. **`legal-writing-humanizer`（文字交付支線）**：完成法源查證或合規審查後，以繁體中文將法律分析、書狀、契約說明或客戶信函調整為台灣法律語體並移除 AI 痕跡；不得新增主張、法源或改變法律效果。
+5. **`legal-graph`（關係圖支線）**：將事實、法條、判決、爭點、當事人與證據整理為 superset JSON；契約案件另建立 `contract → clause → obligation` 三層結構並對映合規審查風險，被上級審廢棄的判決標記 `overturned`。
+6. **檢視關係圖**：依下方「輸出路徑」將 `{nodes, edges}` 寫入對應的 `data.js`，再以瀏覽器開啟同一組的 `index.html`，即可自動載入互動式法律關係圖。已廢棄判決會以紅框虛線標示。
 
 ### legal-graph 輸出路徑
 

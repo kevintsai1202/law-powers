@@ -1,6 +1,6 @@
 ---
 name: legal-graph
-description: 引導 Agent 彙整案情事實、法條、判決、爭點、當事人、證據與契約義務關係（契約→條款→義務三層模型，含風險評級上色），產出與 law-powers 之 index.html/data.js 相容的 superset 法律關係圖譜資料，並寫入 data.js。
+description: 引導 Agent 彙整案情事實、法條、判決、爭點、當事人、證據、契約義務關係（契約→條款→義務三層模型，含風險評級上色）與構成要件涵攝結果（法條→要件→事實該當性上色），產出與 law-powers 之 index.html/data.js 相容的 superset 法律關係圖譜資料，並寫入 data.js。
 ---
 
 # 法律圖譜 Superset 資料生成技能 (Legal Graph Generator)
@@ -46,7 +46,7 @@ graph TD
 3.  **`judgment` (法院判決)**：
     *   *定義*：作為論據支持或裁判參考的最高法院或各級法院判決、大法官解釋。
     *   *例如*：`"id": "jud_supreme_108_2345", "label": "最高法院 108 台上 2345 號", "group": "judgment"`。
-    *   *可選欄位*：`status`（`good`／`bad`／`mixed`，代表本方於該判決之勝敗結果，決定節點配色）、`url`（判決全文連結）、`overturned`（布林值，`true` 表示該判決業經上級審廢棄、僅供審級關係參考；`index.html` 會將該節點改為灰底、紅色網線框，並在標籤末尾加註「⚠️已廢棄」，無此欄位者照常渲染）。
+    *   *可選欄位*：`status`（`good`／`bad`／`mixed`，決定節點配色與徽章底色——本案判決代表本方勝敗；**比對判例則代表該判例對本案立場之有利性**：有利／不利警示／互見）、`statusText`（自訂詳情面板徽章文字，如「對本案有利：車行連帶求償策略」；未提供時顯示通用語意「對本方有利／勝訴」等）、`url`（判決全文連結）、`overturned`（布林值，`true` 表示該判決業經上級審廢棄、僅供審級關係參考；`index.html` 會將該節點改為灰底、紅色網線框，並在標籤末尾加註「⚠️已廢棄」，無此欄位者照常渲染）。
 4.  **`issue` (爭點/訴訟主張)**：
     *   *定義*：雙方的爭執焦點（如時效消滅、請求酌減違約金），或具體的民事求償請求。
     *   *例如*：`"id": "claim_compensation", "label": "請求賠償 50 萬", "group": "issue"`。
@@ -77,11 +77,15 @@ graph TD
     *   *定義*：由條款課予特定當事人之給付義務或行為義務。
     *   *例如*：`"id": "o1", "label": "交付軟體成果", "group": "obligation", "duty": "main"`。
     *   *`duty` 欄位*（可選）：依民法給付義務分類——`main`（主給付義務）、`collateral`（從給付義務）、`incidental`（附隨義務）；`index.html` 依此縮放節點大小（主給付最大），未標註時以中間尺寸（與從給付相同）呈現且詳情面板不顯示義務類型。**注意**：鍵名以本表中文分類為準，非依英文法學譯名慣例（比較法上 collateral duty 慣指附隨義務），對接外部資料時勿依英譯直覺對映。
+11. **`element` (構成要件)**：
+    *   *定義*：由 `legal-element-analysis` 涵攝分析拆解出之法條個別構成要件。
+    *   *例如*：`"id": "e_1", "label": "相當因果關係", "group": "element", "met": "unknown"`。
+    *   *`met` 欄位*（可選）：涵攝結果——`yes`（○ 該當）、`no`（✗ 不該當）、`unknown`（△ 事實不明）；`index.html` 依此將要件節點與其小字標籤上色（綠／紅／黃，未涵攝為中性藍灰），標籤前綴 ○／✗／△ 符號，詳情面板顯示該當性徽章。`description` 應寫入要件內涵與依據（條文文義／判決字號／通說）及對映之本案事實。**不得自行臆測 `met`**——涵攝結果必須來自 `legal-element-analysis` 之涵攝表。
 
 **其他可選欄位**（任一節點皆可加註）：
 *   **`family`**：案件分群標籤（如同一被告集團、同一系列產品訴訟、同一契約叢集），用於在 `index.html` 啟用「家族聚焦」視圖。
 
-**向後相容聲明**：若手邊僅有基本資料，僅產出 `fact`／`law`／`judgment`／`issue` 四類節點與下列前 7 種連線（不含 `party`／`plaintiff`／`evidence`、「法條關聯」／「當事人」／「證據」連線及 `family` 欄位）亦可，`index.html` 仍可正常渲染舊格式圖譜；`judgment` 節點之 `status`／`url`／`overturned` 欄位在基本格式下亦可照常使用。契約類節點（`contract`／`clause`／`obligation`）與契約類連線同屬可選擴充——純訴訟圖譜無須產出，純合約審查圖譜亦可不含 `judgment`／`issue` 節點，兩種叢集並存於同一張圖（如契約糾紛案件）時以 `family` 區分。
+**向後相容聲明**：若手邊僅有基本資料，僅產出 `fact`／`law`／`judgment`／`issue` 四類節點與下列前 7 種連線（不含 `party`／`plaintiff`／`evidence`、「法條關聯」／「當事人」／「證據」連線及 `family` 欄位）亦可，`index.html` 仍可正常渲染舊格式圖譜；`judgment` 節點之 `status`／`url`／`overturned` 欄位在基本格式下亦可照常使用。契約類節點（`contract`／`clause`／`obligation`）與契約類連線、構成要件節點（`element`）與「要件」／「該當」連線同屬可選擴充——純訴訟圖譜無須產出，純合約審查圖譜亦可不含 `judgment`／`issue` 節點，多種叢集並存於同一張圖（如契約糾紛案件＋要件涵攝）時以 `family` 區分。
 
 ### 步驟二：建立法律關係連線 (Edges)
 定義節點間的連線，連線的 `label` 必須精準符合以下類型，以便在 `index.html` 中正確觸發連線樣式分流：
@@ -111,6 +115,12 @@ graph TD
 *   **`"違約效果"`**：`clause`（違約金／解除權等效果條款）➔ `obligation`，表示違反該義務時觸發此條款之效果。
 *   *（沿用既有連線）*：條款或契約適用之法條以 **`"適用"`** 連線（`contract`／`clause` ➔ `law`）；保證人擔保特定義務履行，沿用 **`"連帶責任/保證"`** 連線（`party` ➔ `obligation`）。
 
+**構成要件涵攝連線**（`legal-element-analysis` 產出專用）：
+*   **`"要件"`**：`law` ➔ `element`，法條拆解出該構成要件。
+*   **`"該當"`**：`fact` ➔ `element`，本案事實對映至該要件；**連線顏色依目標要件之 `met` 自動分流**（該當=綠、不該當=紅、事實不明=黃）。
+*   **`"要件認定"`**：`judgment` ➔ `element`，**判例對該要件之認定或闡釋**（如認定標準、舉證方式、計算方法）；`title` **必填**認定要旨。另有可選欄位 `stance` 標示**該認定對本案立場之有利性**——`pro`（有利，連線綠色）／`con`（不利警示，連線紅色），未標註為中性天藍。此為**他案**事實之認定，僅供比對參考——**不得**因判例認定而改動本案要件之 `met`（`met` 只能來自本案涵攝表）。判例節點仍須為檢索白名單（`allowed_citations`）內之判決。
+*   *（沿用既有連線）*：要件之待補或佐證證據以 **`"證據"`** 連線（`element` ➔ `evidence`）；證據缺口之 `evidence` 節點不標 `favorable`（渲染為中性灰）。
+
 ### 步驟三：組裝並寫入 data.js
 Agent 必須先以下方的 ` ```json ` 格式在內部組裝 `{nodes, edges}` 資料，且**禁止在 JSON 中加入任何註解（如 `//` 或 `/* */`）**，確保其符合標準 JSON 規格：
 
@@ -129,7 +139,8 @@ Agent 必須先以下方的 ` ```json ` 格式在內部組裝 `{nodes, edges}` �
     { "id": "clause_penalty_id", "label": "§9 違約金", "group": "clause", "title": "滑鼠懸停簡述", "description": "【條款原文】…\n\n【風險分析】…\n\n【修改建議】…", "risk": "high" },
     { "id": "obligation_id", "label": "交付工作成果", "group": "obligation", "title": "滑鼠懸停簡述", "description": "義務內容說明", "duty": "main" },
     { "id": "obligation_id_2", "label": "給付報酬", "group": "obligation", "title": "滑鼠懸停簡述", "description": "義務內容說明", "duty": "main" },
-    { "id": "party_a_id", "label": "契約甲方名稱", "group": "party", "role": "甲方（委託人）" }
+    { "id": "party_a_id", "label": "契約甲方名稱", "group": "party", "role": "甲方（委託人）" },
+    { "id": "element_id", "label": "相當因果關係", "group": "element", "title": "△ 事實不明", "description": "要件內涵與依據＋對映之本案事實", "met": "unknown" }
   ],
   "edges": [
     { "from": "from_id", "to": "to_id", "label": "關係類別", "title": "關係的具體法律說明" },
@@ -143,7 +154,11 @@ Agent 必須先以下方的 ` ```json ` 格式在內部組裝 `{nodes, edges}` �
     { "from": "party_id", "to": "obligation_id", "label": "負擔", "title": "乙方為此義務之債務人" },
     { "from": "obligation_id", "to": "party_a_id", "label": "得請求", "title": "甲方為此義務之債權人" },
     { "from": "obligation_id", "to": "obligation_id_2", "label": "對價", "title": "雙務契約互為對價之給付" },
-    { "from": "clause_penalty_id", "to": "obligation_id", "label": "違約效果", "title": "違反交付義務觸發違約金條款" }
+    { "from": "clause_penalty_id", "to": "obligation_id", "label": "違約效果", "title": "違反交付義務觸發違約金條款" },
+    { "from": "law_id", "to": "element_id", "label": "要件", "title": "自條文文義拆解" },
+    { "from": "fact_id", "to": "element_id", "label": "該當", "title": "本案事實對映此要件之說明" },
+    { "from": "element_id", "to": "evi_id", "label": "證據", "title": "待補：可佐證此要件之證據" },
+    { "from": "jud_id", "to": "element_id", "label": "要件認定", "title": "判例對此要件之認定要旨（他案認定，不影響本案 met）" }
   ]
 }
 ```
