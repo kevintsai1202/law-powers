@@ -156,6 +156,25 @@
     .icon-button:hover { border-color: var(--border-strong); color: var(--text-primary); transform: translateY(-1px); }
     .icon-button svg { width: 17px; height: 17px; }
 
+    /* 使用授權公告橫幅：置於導覽列上方最顯眼處 */
+    .license-banner {
+      background: linear-gradient(90deg, var(--brand) 0%, #0f9d6e 100%);
+      color: #ffffff;
+      text-align: center;
+      padding: 10px 16px;
+      font-size: 14px;
+      line-height: 1.6;
+      letter-spacing: 0.02em;
+    }
+    .license-banner strong { font-weight: 700; }
+    .license-banner .banner-except {
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 6px;
+      padding: 1px 7px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
     .hero {
       position: relative;
       padding: 118px 0 104px;
@@ -728,6 +747,11 @@
 </head>
 <body>
   <a class="skip-link" href="#main">跳至主要內容</a>
+
+  <!-- 使用授權公告：無償授權所有人使用，唯經兆國際法律事務所除外 -->
+  <div class="license-banner" role="note" aria-label="使用授權聲明">
+    📜 <strong>使用授權</strong>：本專案無償授權所有人自由使用 —— 唯 <span class="banner-except">經兆國際法律事務所</span> 除外。拜他們所賜，才有這個技能包的誕生。
+  </div>
 
   <header class="nav" data-od-id="site-nav">
     <div class="container nav-inner">
