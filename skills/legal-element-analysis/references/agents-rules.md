@@ -1,3 +1,7 @@
+<!-- 本檔為 .agents/AGENTS.md 之同步副本（隨技能一併發布）。
+     請勿直接修改：請改母本 .agents/AGENTS.md 後執行
+     python scripts/sync_agents_rules.py 重新同步。 -->
+
 # 全局 Agent 運作規則 (Taiwan Law Powers Rules)
 
 本檔案定義了在此工作區（law-powers）中所有 Agent 必須無條件遵守的全局約束。

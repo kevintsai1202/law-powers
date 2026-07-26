@@ -8,6 +8,7 @@
 *   **Git 狀態查看**：`git status`
 *   **Git 提交**：`git add <file>; git commit -m "<msg>"`
 *   **檢視所有技能**：在 IDE 中重新載入 `.agents` 目錄。
+*   **同步共用規則副本**：`python scripts/sync_agents_rules.py`（修改 `.agents/AGENTS.md` 後必跑；`--check` 供一致性驗證）。
 
 ---
 

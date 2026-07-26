@@ -40,6 +40,24 @@ npx skills add kevintsai1202/law-powers
 
 本技能包為 Prompt-Only 輕量化架構，檢索功能高度依賴於本機運行的 **台灣法規判例 MCP Server**。
 
+### 各技能依賴一覽
+
+| 技能 | taiwan-legal-db | dr-lawbot |
+|---|---|---|
+| `legal-research` | **必要**（缺少時技能會引導安裝） | 建議（缺少時降級為關鍵字單軌） |
+| `legal-element-analysis` | **必要**（條文原文查證） | 建議（要件內涵判決錨定） |
+| `compliance-verification` | **必要**（法規對照） | 可選（實證佐證） |
+| `official-document-drafting` | 建議（引用法規時查證） | 不需要 |
+| `legal-brainstorming`、`legal-graph`、`legal-writing-humanizer` | 不需要 | 不需要 |
+
+> 各技能隨附 `references/agents-rules.md`（共用運作規則，含完整安裝協議）；即使未先讀本 README，Agent 於首次執行技能時也會依該檔 §5 偵測缺少的工具並主動引導安裝。
+
+### 安裝後驗證
+
+1. 註冊完成後**重啟 IDE／session**（新 MCP 工具重啟後才會載入）。
+2. 對 Agent 下一個簡單查詢確認連線，例如：「用 taiwan-legal-db 查《中華民國民法》第 184 條條文」——回得出條文原文即安裝成功。
+3. 依平台確認伺服器已連線：`claude mcp list`（Claude Code）、`gemini mcp list`（Gemini CLI）、`codex mcp list`（Codex CLI），其他平台檢查對應 MCP 設定檔或工具面板，確認 `taiwan-legal-db`、`dr-lawbot` 均已載入。
+
 請確保您的環境中已安裝並登錄以下 MCP Server：
 *   **MCP 專案名稱**：`taiwan-legal-db`
 *   **GitHub**：[mcp-taiwan-legal-db](https://github.com/lawchat-oss/mcp-taiwan-legal-db)
@@ -200,6 +218,12 @@ flowchart TD
 2. 公文中引用之法規字號依檢索優先原則以 `taiwan-legal-db` 查證（必要時轉 `legal-research`），不憑記憶杜撰。
 
 ## 變更歷程
+
+### 2026-07-27
+- 首次安裝引導強化：各技能自帶 `references/agents-rules.md` 共用規則副本（隨 Skills CLI 一併安裝），全域安裝後檢索優先、引用格式、免責聲明與 MCP 引導安裝協議不再失效。
+- 安裝協議升級：工具偵測方法（檢視工具清單而非試錯）、pip／pipx 與 PATH 注意事項、`claude` CLI 不可用時之設定檔 fallback、重啟硬閘門與安裝後煙霧測試。
+- 修正 `legal-graph` 全域安裝情境下的輸出路徑（skills-only 寫入 `renderer/data.js`）。
+- 新增 `scripts/sync_agents_rules.py` 同步腳本與各技能依賴一覽表。
 
 ### 2026-07-17
 - 新增 `legal-element-analysis` 構成要件涵攝技能（○／✗／△ 涵攝表、證據缺口清單），3D 渲染器同步支援要件節點視覺化。

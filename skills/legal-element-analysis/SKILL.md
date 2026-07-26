@@ -16,6 +16,10 @@ description: 對檢索取得之法條進行構成要件拆解與逐要件涵攝�
 
 本技能用於在法條定性（`legal-brainstorming`）與法源檢索（`legal-research`）之後，將候選法條拆解為個別構成要件，並將本案事實逐一涵攝，產出「該當／不該當／事實不明」的結構化檢驗結果與證據缺口清單。本技能處理的是**法條與事實之間**的該當性檢驗；法條與法條之間的體系關係（`trigger`／`alt`／`absorb`／`lex`／`bridge`）仍由 `legal-graph` 的「法條關聯」處理。
 
+## 📖 共用規則載入（必讀）
+
+本技能隨附之 [references/agents-rules.md](references/agents-rules.md) 為全技能包共用之運作規則（§1 檢索優先與防幻覺、§2 引用格式、§3 台灣術語、§4 免責聲明、§5 MCP 引導安裝）。執行本技能任何步驟前必須先讀取該檔案；下文所引「agents-rules §N」均指該檔章節。
+
 ## 執行流程
 
 ```mermaid
@@ -35,8 +39,9 @@ graph TD
 ---
 
 ### 步驟零：法源前提檢查 (Source Gate)
-*   **規則**：受檢驗法條之**條文原文**必須來自 `taiwan-legal-db`（`search_regulations`／`query_regulation`）之查證結果，不得憑記憶引用；查證流程與引用格式悉依 `legal-research` 技能與 `.agents/AGENTS.md` §2。
+*   **規則**：受檢驗法條之**條文原文**必須來自 `taiwan-legal-db`（`search_regulations`／`query_regulation`）之查證結果，不得憑記憶引用；查證流程與引用格式悉依 `legal-research` 技能與 agents-rules §2。
 *   若條文尚未查證，先調用 `legal-research` 完成檢索後再進入步驟一；查無該條文時依信任閘門處理，不得逕行分析。
+*   **工具缺席**：若可用工具清單未載入 `taiwan-legal-db` 之工具（偵測方法依 agents-rules §5.1，平台中立），先依 agents-rules §5.3–§5.5 引導安裝、重啟並煙霧測試；安裝完成前**不得憑記憶引用條文進行拆解**。
 
 ### 步驟一：確定檢驗標的 (Target Selection)
 *   **來源**：由 `legal-brainstorming` 步驟二的法律關係定性結果，或使用者直接指定（如「幫我檢驗民法第 184 條第 1 項前段」）。
@@ -72,7 +77,7 @@ graph TD
     *   存在 △ → 「成立與否繫於事實補充」，明列各 △ 要件。
 *   **證據缺口清單**：將所有 △ 要件轉為證據需求清單，格式對齊 `legal-brainstorming` 步驟四（按主張事實排列、指明可取得之證據類型），供使用者補充事實或蒐證。
 *   **刑事案件**：三階層逐層給結論；構成要件不該當即毋庸進入違法性與有責性，並明確記載審查止於何階層。
-*   **免責聲明**：報告最下方附 `.agents/AGENTS.md` §4 之自動免責聲明。
+*   **免責聲明**：報告最下方附 agents-rules §4 之自動免責聲明。
 
 ### 步驟五（可選）：圖譜銜接 (Graph Integration)
 *   涵攝結果可交 `legal-graph` 以**一等節點**視覺化（渲染器原生支援 `element` 節點）：
