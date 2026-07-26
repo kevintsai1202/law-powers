@@ -23,6 +23,8 @@
 npx skills add kevintsai1202/law-powers -g --all
 ```
 
+> **看到 `Failed to install`？多半可以忽略。** `--all` 會嘗試把技能裝到系統偵測到的**所有** agent；若其中包含不支援全域安裝的 agent（如 Eve、PromptScript），會出現 `... does not support global skill installation` 的失敗訊息。這是該 agent 本身的限制，**不影響其他 agent（如 Claude Code）的安裝結果**。想避免這些訊息，可改用 `-a` 只指定要安裝的 agent（例：`npx skills add kevintsai1202/law-powers -g -s '*' -a claude-code`），或用下方互動模式自選；這類 agent 若確實需要使用，請在專案目錄內以**專案層級**（不加 `-g`）安裝。
+
 若要自行選擇安裝的技能、Agent 與範圍，請改用互動模式：
 
 ```powershell
