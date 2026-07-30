@@ -119,3 +119,17 @@ graph TD
     > 1. 調整搜尋關鍵字（例如：將「XXX」改為「YYY」）。
     > 2. 提供更多詳細事實背景。
     > 3. 諮詢中華民國執業律師以獲得正式法律意見。
+
+---
+
+## 📥 判決存檔輸出慣例 (Judgment Archiving)
+
+使用者要求「下載／保存／存檔／匯出」判決時，**一律存成 Markdown**，不得改抓司法院網站的 HTML 或 PDF 原檔（除非使用者明確要求原始格式）。
+
+*   **取全文工具**：以 `taiwan-legal-db:get_judgment`（傳 JID）取得結構化全文——回傳已含 `main_text`、`facts`、`reasoning`、`cited_statutes`、`cited_cases`、`full_text`、`source_url` 等欄位，直接組檔即可。
+    *   > 註：`dr-lawbot:get_judgment_fulltext` 綁定檢索回合的 `result_token`（會過期），僅適合檢索當下順手保存；**事後補存一律走 `get_judgment`**。
+*   **存檔位置與檔名**：寫入當前工作目錄（或使用者指定位置）之 `outputs/judgments/`；檔名以 JID 正規化（逗號改底線，例：`TPSV_104_台上_472_20150326_1.md`）。
+*   **Markdown 格式**：
+    *   front matter：`jid`、`court`、`date`、`citation`（完整字號，依 agents-rules §2 格式）、`source_url`、`archived_at`；若該判決經步驟三廢棄防護檢出已遭上級審廢棄，加註 `overturned: true`。
+    *   正文依序分節：主文／事實／理由／引用法條／引用判決；內容須為工具回傳之逐字原文，不得摘要改寫（摘要另附於檔外回覆即可）。
+*   **驗證不豁免**：存檔內容視同引用，步驟三的引用驗證與廢棄防護照常適用；已廢棄判決仍可存檔留卷，但正文開頭須明確標註「⚠️ 本判決已被上級審廢棄，不得作為現行有效權威引用」。
