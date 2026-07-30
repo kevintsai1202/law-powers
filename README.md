@@ -17,7 +17,7 @@
 
 ## 安裝技能包
 
-建議使用 `npx skills add`（[Skills CLI](https://skills.sh/)）一次將全部 7 個技能安裝到使用者層級，並套用至系統偵測到的所有支援 Agent：
+建議使用 `npx skills add`（[Skills CLI](https://skills.sh/)）一次將全部 8 個技能安裝到使用者層級，並套用至系統偵測到的所有支援 Agent：
 
 ```powershell
 npx skills add kevintsai1202/law-powers -g --all
@@ -48,6 +48,7 @@ npx skills add kevintsai1202/law-powers
 |---|---|---|
 | `legal-research` | **必要**（缺少時技能會引導安裝） | 建議（缺少時降級為關鍵字單軌） |
 | `legal-element-analysis` | **必要**（條文原文查證） | 建議（要件內涵判決錨定） |
+| `legal-case-analysis` | **必要**（判決全文查證） | 建議（見解比較判決檢索） |
 | `compliance-verification` | **必要**（法規對照） | 可選（實證佐證） |
 | `official-document-drafting` | 建議（引用法規時查證） | 不需要 |
 | `legal-brainstorming`、`legal-graph`、`legal-writing-humanizer` | 不需要 | 不需要 |
@@ -118,6 +119,7 @@ flowchart TD
     U(["使用者：案情 / 契約 / 爭議"])
     LB["legal-brainstorming<br/>案情梳理・釐清爭點・策略規劃"]
     LR["legal-research<br/>雙軌判例檢索・合併去重・引用驗證"]
+    CA["legal-case-analysis<br/>判決拆解・見解比較・適用性評估"]
     EA["legal-element-analysis<br/>構成要件拆解・逐要件涵攝・證據缺口"]
     LG["legal-graph<br/>彙整為關係圖 superset JSON・契約義務模型"]
     CV["compliance-verification<br/>合約風險稽核・法規合規檢查"]
@@ -130,7 +132,11 @@ flowchart TD
     U --> LB
     U -. 契約審查入口 .-> CV
     LB --> LR
+    LR --> CA
     LR --> EA
+    CA --> EA
+    CA --> LG
+    CA --> LWH
     EA --> LG
     EA --> LWH
     LR --> LG
@@ -141,6 +147,7 @@ flowchart TD
     LR -. 佐證法源 .-> CV
     LR <-->|語意軌| DB1
     LR <-->|關鍵字軌／法源原文| DB2
+    CA <-->|判決全文 get_judgment| DB2
     CV <-->|合規法源| DB2
 
     subgraph MCP [本機 MCP 檢索工具]
@@ -154,6 +161,7 @@ flowchart TD
 ## 技能列表 (Skills)
 *   **`legal-brainstorming`**：案情分析與訴訟策略起草前腦力激盪。
 *   **`legal-research`**：以語意與關鍵字雙軌並行檢索台灣判例，合併去重後執行引用驗證、廢棄判決防護與信任閘門。
+*   **`legal-case-analysis`**：對經檢索驗證之判決深度分析——單判決拆解（事實、爭點、兩造主張、法院論理、結論）、多判決見解歧異比較、實務見解演變時間軸與本案適用性評估（可援引／可區辨）；所有見解摘述均錨定理由書原文，禁止憑記憶評析判決。
 *   **`legal-element-analysis`**：將檢索取得之法條拆解為構成要件並逐要件涵攝（民事請求權基礎檢驗、刑事三階層審查），輸出涵攝表、該當性結論與證據缺口清單；要件拆解須有條文或判決依據，禁止自創要件。
 *   **`legal-graph`**：將案情、法條、判決、爭點、當事人、證據，以及 `contract → clause → obligation` 契約義務三層模型與風險評級彙整為 superset 法律關係圖資料；隨附自包含 3D 渲染器（`skills/legal-graph/renderer/`）可直接檢視。
 *   **`compliance-verification`**：進行合約風險稽核與特定法規合規性檢查。
@@ -164,10 +172,11 @@ flowchart TD
 
 1. **`legal-brainstorming`**：逐步梳理案情、法律關係與爭點。
 2. **`legal-research`**：同一回合並行呼叫 `dr-lawbot:search_bundle`（語意）與 `taiwan-legal-db:search_judgments`（法律關鍵字），依 JID 合併去重後執行引用驗證與廢棄判決防護；法條原文另由 `taiwan-legal-db` 查證。
-3. **`legal-element-analysis`（要件涵攝）**：將查證後的法條拆解為構成要件，逐一對映本案事實（該當○／不該當✗／事實不明△）；✗ 提示備位請求權基礎，△ 轉為證據需求清單，涵攝表可寫入關係圖 `law` 節點。
-4. **`legal-writing-humanizer`（文字交付支線）**：完成法源查證或合規審查後，以繁體中文將法律分析、書狀、契約說明或客戶信函調整為台灣法律語體並移除 AI 痕跡；不得新增主張、法源或改變法律效果。
-5. **`legal-graph`（關係圖支線）**：將事實、法條、判決、爭點、當事人與證據整理為 superset JSON；契約案件另建立 `contract → clause → obligation` 三層結構並對映合規審查風險，被上級審廢棄的判決標記 `overturned`。
-6. **檢視關係圖**：依下方「輸出路徑」將 `{nodes, edges}` 寫入對應的 `data.js`，再以瀏覽器開啟同一組的 `index.html`，即可自動載入互動式法律關係圖。已廢棄判決會以紅框虛線標示。
+3. **`legal-case-analysis`（判決分析）**：對檢索取得的關鍵判決拆解事實、爭點、兩造主張與法院論理（見解摘述逐字錨定理由書原文）；必要時比較多判決見解歧異、整理見解演變時間軸，並以異同對照表評估判決可否援引於本案（可援引／可區辨／不適用）。
+4. **`legal-element-analysis`（要件涵攝）**：將查證後的法條拆解為構成要件，逐一對映本案事實（該當○／不該當✗／事實不明△）；✗ 提示備位請求權基礎，△ 轉為證據需求清單，涵攝表可寫入關係圖 `law` 節點。
+5. **`legal-writing-humanizer`（文字交付支線）**：完成法源查證或合規審查後，以繁體中文將法律分析、書狀、契約說明或客戶信函調整為台灣法律語體並移除 AI 痕跡；不得新增主張、法源或改變法律效果。
+6. **`legal-graph`（關係圖支線）**：將事實、法條、判決、爭點、當事人與證據整理為 superset JSON；契約案件另建立 `contract → clause → obligation` 三層結構並對映合規審查風險，被上級審廢棄的判決標記 `overturned`。
+7. **檢視關係圖**：依下方「輸出路徑」將 `{nodes, edges}` 寫入對應的 `data.js`，再以瀏覽器開啟同一組的 `index.html`，即可自動載入互動式法律關係圖。已廢棄判決會以紅框虛線標示。
 
 ### legal-graph 輸出路徑
 
@@ -220,6 +229,10 @@ flowchart TD
 2. 公文中引用之法規字號依檢索優先原則以 `taiwan-legal-db` 查證（必要時轉 `legal-research`），不憑記憶杜撰。
 
 ## 變更歷程
+
+### 2026-07-31
+- 新增 `legal-case-analysis` 判決深度分析技能：單判決拆解（事實／爭點／兩造主張／法院論理，見解摘述逐字錨定理由書原文）、多判決見解歧異比較、實務見解演變時間軸、本案適用性評估（可援引／可區辨／不適用）。
+- `legal-brainstorming` 後續分析選單新增「判決深度分析」選項（原五選項擴為六選項）。
 
 ### 2026-07-27
 - 首次安裝引導強化：各技能自帶 `references/agents-rules.md` 共用規則副本（隨 Skills CLI 一併安裝），全域安裝後檢索優先、引用格式、免責聲明與 MCP 引導安裝協議不再失效。

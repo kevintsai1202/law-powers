@@ -940,7 +940,7 @@
     <section class="section section-border" id="skills" data-od-id="skill-suite">
       <div class="container">
         <div class="section-head reveal">
-          <p class="section-kicker">Seven focused skills</p>
+          <p class="section-kicker">Eight focused skills</p>
           <h2 class="section-title">從一團混亂的案情，到可查證的法律文件</h2>
           <p class="section-desc">每項技能只負責一件事，避免在同一個 Prompt 裡混合研究、策略、視覺化與文字校訂。</p>
         </div>
@@ -957,27 +957,32 @@
             <p>語意找論理、關鍵字找原文，合併後再逐筆驗證引用資格。</p>
           </article>
           <article class="card feature-card reveal">
-            <span class="feature-number">03 / ELEMENT-ANALYSIS</span>
+            <span class="feature-number">03 / CASE-ANALYSIS</span>
+            <h3>判決深度分析</h3>
+            <p>拆解判決的爭點、兩造主張與法院論理，比較見解歧異、追蹤見解演變——見解摘述逐字錨定理由書原文，並評估能否援引於本案。</p>
+          </article>
+          <article class="card feature-card reveal">
+            <span class="feature-number">04 / ELEMENT-ANALYSIS</span>
             <h3>構成要件涵攝</h3>
             <p>把法條拆成一項項要件逐一對映本案事實：該當○、不該當✗、事實不明△——△ 直接轉成證據需求清單，不以推測補充事實。</p>
           </article>
           <article class="card feature-card reveal">
-            <span class="feature-number">04 / LEGAL-GRAPH</span>
+            <span class="feature-number">05 / LEGAL-GRAPH</span>
             <h3>法律關係圖</h3>
             <p>將事實、法條、判決、爭點、當事人與證據整理成可互動檢視的關係圖。</p>
           </article>
           <article class="card feature-card reveal">
-            <span class="feature-number">05 / COMPLIANCE</span>
+            <span class="feature-number">06 / COMPLIANCE</span>
             <h3>契約與合規稽核</h3>
             <p>辨識條款風險、權利義務不對等、法規缺口及需要補強的約定。</p>
           </article>
           <article class="card feature-card reveal">
-            <span class="feature-number">06 / WRITING-HUMANIZER</span>
+            <span class="feature-number">07 / WRITING-HUMANIZER</span>
             <h3>台灣法律文字校訂</h3>
             <p>移除 AI 痕跡與中國大陸法律用語，同時凍結日期、金額、請求、抗辯與引用，不因潤稿改變法律效果。</p>
           </article>
-          <article class="card feature-card span-2 reveal">
-            <span class="feature-number">07 / OFFICIAL-DOCUMENT</span>
+          <article class="card feature-card reveal">
+            <span class="feature-number">08 / OFFICIAL-DOCUMENT</span>
             <h3>政府公文書撰寫</h3>
             <p>函、書函、公告、簽的段落結構與稱謂、期望目的語，依《文書處理手冊》套用；先判對行文方向（上行／平行／下行），用語才不會全盤用錯。</p>
             <div class="feature-code"><span>主旨</span> → 說明 → 辦法（函）／擬辦（簽）</div>
@@ -1103,6 +1108,13 @@
         </div>
         <ol class="timeline reveal">
           <li class="timeline-group">
+            <span class="timeline-date">2026-07-31</span>
+            <ul class="timeline-list">
+              <li>新增 legal-case-analysis 判決深度分析技能：單判決拆解、多判決見解歧異比較、實務見解演變時間軸、本案適用性評估；見解摘述逐字錨定理由書原文。</li>
+              <li>legal-brainstorming 後續分析選單新增「判決深度分析」選項。</li>
+            </ul>
+          </li>
+          <li class="timeline-group">
             <span class="timeline-date">2026-07-17</span>
             <ul class="timeline-list">
               <li>新增 legal-element-analysis 構成要件涵攝技能（○／✗／△ 涵攝表、證據缺口清單），3D 渲染器同步支援要件節點視覺化。</li>
@@ -1134,7 +1146,7 @@
         <div class="cta-card reveal">
           <p class="section-kicker">Law is Code · Evidence is the Gate</p>
           <h2>讓 AI 的每一句法律主張，都能交代它從哪裡來</h2>
-          <p>law-powers 是開源的 Prompt-Only 技能包。以下指令會將全部 7 個技能安裝到使用者層級，並套用至系統偵測到的所有支援 Agent；法源 MCP 工具仍需依 README 完成設定。</p>
+          <p>law-powers 是開源的 Prompt-Only 技能包。以下指令會將全部 8 個技能安裝到使用者層級，並套用至系統偵測到的所有支援 Agent；法源 MCP 工具仍需依 README 完成設定。</p>
           <div class="install-box">
             <code id="install-command">npx skills add kevintsai1202/law-powers -g --all</code>
             <button class="copy-button" id="copy-command" type="button">複製指令</button>

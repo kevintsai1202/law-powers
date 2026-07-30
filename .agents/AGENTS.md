@@ -43,6 +43,7 @@
 |---|---|---|
 | `legal-research` | **必要**——缺少時暫停分析，依 §5.3 引導安裝 | 建議——缺少時降級為關鍵字單軌，一次性告知 |
 | `legal-element-analysis` | **必要**——條文原文必須查證，缺少時先依 §5.3 引導安裝 | 建議——要件內涵之判決錨定 |
+| `legal-case-analysis` | **必要**——判決全文必須以 `get_judgment` 查證，缺少時先依 §5.3 引導安裝 | 建議——見解比較與演變所需判決之語意檢索 |
 | `compliance-verification` | **必要**——法規對照必須查證 | 可選——實證佐證 |
 | `official-document-drafting` | 建議——公文引用法規字號時查證 | 不需要 |
 | `legal-brainstorming` | 不需要（步驟五轉介 `legal-research` 時才需要） | 不需要 |
