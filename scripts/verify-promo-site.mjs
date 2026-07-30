@@ -104,6 +104,9 @@ async function verifyProfile(browser, profile) {
     "npx skills add kevintsai1202/law-powers -g --all",
     `${profile.id}: 安裝指令未使用 Skills CLI`,
   );
+  const installNote = (await page.locator(".cta-card .install-note").innerText()).trim();
+  assert.match(installNote, /Failed to install/, `${profile.id}: 安裝補充說明缺少 Failed to install 提示`);
+  assert.match(installNote, /-a claude-code/, `${profile.id}: 安裝補充說明缺少指定 agent 的替代指令`);
   const heroImage = page.locator('.hero-visual img');
   assert.ok(await heroImage.isVisible(), `${profile.id}: Hero 圖片不可見`);
   assert.ok(await heroImage.evaluate((image) => image.complete && image.naturalWidth > 0), `${profile.id}: Hero 圖片載入失敗`);

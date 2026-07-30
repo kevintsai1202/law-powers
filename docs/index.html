@@ -686,6 +686,8 @@
     .install-box code { min-width: 0; overflow: hidden; color: var(--text-secondary); font-family: var(--font-mono); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
     .copy-button { flex: 0 0 auto; min-height: 34px; padding: 0 12px; border: 1px solid var(--border); border-radius: 7px; background: var(--bg-secondary); color: var(--text-primary); cursor: pointer; font-size: 11px; font-weight: 700; }
     .copy-button:hover { border-color: var(--border-strong); }
+    .cta-card .install-note { width: min(670px, 100%); max-width: none; margin: 14px auto 0; color: var(--text-muted); font-size: 12px; line-height: 1.8; text-align: left; }
+    .install-note code { padding: 1px 5px; border: 1px solid var(--border); border-radius: 5px; background: var(--bg-soft); color: var(--text-secondary); font-family: var(--font-mono); font-size: 11px; overflow-wrap: anywhere; }
 
     footer { padding: 36px 0; border-top: 1px solid var(--border); }
     .footer-inner { display: flex; align-items: center; justify-content: space-between; gap: 20px; color: var(--text-muted); font-size: 12px; }
@@ -1131,6 +1133,7 @@
             <code id="install-command">npx skills add kevintsai1202/law-powers -g --all</code>
             <button class="copy-button" id="copy-command" type="button">複製指令</button>
           </div>
+          <p class="install-note">看到 <code>Failed to install</code>？那是 Eve、PromptScript 等不支援全域安裝的 agent 回報的訊息，不影響其他 agent 的安裝結果，可放心忽略。想完全避開，可改用 <code>-a</code> 只安裝到指定 agent（例如 Claude Code）：<code>npx skills add kevintsai1202/law-powers -g -s '*' -y -a claude-code</code></p>
           <div class="hero-actions">
             <a class="button button-primary" href="https://github.com/kevintsai1202/law-powers" target="_blank" rel="noopener noreferrer">前往 GitHub</a>
             <a class="button button-secondary" href="legal-search-comparison.html">查看雙軌檢索實測</a>
