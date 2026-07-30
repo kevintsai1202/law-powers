@@ -104,6 +104,16 @@ async function verifyProfile(browser, profile) {
     "npx skills add kevintsai1202/law-powers -g --all",
     `${profile.id}: 安裝指令未使用 Skills CLI`,
   );
+  // GitHub 星數徽章：元素必須存在；API 可達時須顯示數字，不可達時允許保持隱藏（fail-silent 設計）。
+  const starBadge = page.locator("#github-stars");
+  assert.equal(await starBadge.count(), 1, `${profile.id}: 導覽列缺少 GitHub 星數徽章元素`);
+  if (!(await starBadge.evaluate((element) => element.hidden))) {
+    assert.match(
+      (await page.locator("#github-star-count").innerText()).trim(),
+      /^\d+$/,
+      `${profile.id}: 星數徽章顯示中但內容不是數字`,
+    );
+  }
   const installNote = (await page.locator(".cta-card .install-note").innerText()).trim();
   assert.match(installNote, /Failed to install/, `${profile.id}: 安裝補充說明缺少 Failed to install 提示`);
   assert.match(installNote, /-a claude-code/, `${profile.id}: 安裝補充說明缺少指定 agent 的替代指令`);

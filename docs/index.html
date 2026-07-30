@@ -263,6 +263,8 @@
     .button-secondary { background: var(--bg-secondary); color: var(--text-primary); border-color: var(--border); }
     .button-secondary:hover { border-color: var(--border-strong); }
     .button svg { width: 17px; height: 17px; }
+    .star-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border: 1px solid var(--border); border-radius: 999px; background: var(--bg-soft); color: var(--text-secondary); font-family: var(--font-mono); font-size: 11px; font-weight: 700; }
+    .button .star-badge svg { width: 12px; height: 12px; color: #eab308; }
     .hero-meta {
       display: flex;
       justify-content: center;
@@ -776,8 +778,12 @@
         <button class="icon-button" id="theme-toggle" type="button" aria-label="切換深淺色模式">
           <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36A7 7 0 0 1 12 3Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
-        <a class="button button-secondary" href="https://github.com/kevintsai1202/law-powers" target="_blank" rel="noopener noreferrer">
+        <a class="button button-secondary" href="https://github.com/kevintsai1202/law-powers" target="_blank" rel="noopener noreferrer" title="到 GitHub 為專案按下星星支持">
           GitHub
+          <span class="star-badge" id="github-stars" hidden>
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m12 2 2.9 6.26 6.6.8-4.87 4.73 1.25 6.51L12 17.77 6.12 20.3l1.25-6.51L2.5 9.06l6.6-.8L12 2Z"/></svg>
+            <span id="github-star-count">0</span>
+          </span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m9 18 6-6-6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </a>
       </div>
@@ -1241,8 +1247,27 @@
       revealItems.forEach((item) => observer.observe(item));
     }
 
+    /**
+     * 讀取 GitHub API 的 stargazers_count，顯示於導覽列 GitHub 按鈕的星數徽章。
+     * API 不可達（離線、額度用盡）時徽章保持隱藏，靜默略過、不影響頁面其他功能。
+     * @returns {Promise<void>}
+     */
+    async function loadGithubStars() {
+      try {
+        const response = await fetch("https://api.github.com/repos/kevintsai1202/law-powers");
+        if (!response.ok) return;
+        const repo = await response.json();
+        if (typeof repo.stargazers_count !== "number") return;
+        document.getElementById("github-star-count").textContent = String(repo.stargazers_count);
+        document.getElementById("github-stars").hidden = false;
+      } catch {
+        /* 離線或 API 失敗時靜默略過，徽章維持隱藏 */
+      }
+    }
+
     initializeTheme();
     initializeRevealAnimations();
+    loadGithubStars();
     document.getElementById("theme-toggle").addEventListener("click", toggleTheme);
     document.getElementById("copy-command").addEventListener("click", copyInstallCommand);
   </script>
