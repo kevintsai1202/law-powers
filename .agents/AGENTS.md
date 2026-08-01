@@ -8,6 +8,7 @@
     *   **判例（找相關判例／論理）**：**雙軌並行**——同一回合同時呼叫語意檢索 `dr-lawbot:search_bundle` 與關鍵字檢索 `taiwan-legal-db:search_judgments`，再依 `legal-research` 技能的「合併去重規則」整合：以司法院 JID（語意軌 `doc_id` ＝ 關鍵字軌 `jid`）為去重鍵，重複判決保留資訊較完整（有理由書全文）的一筆，雙軌皆命中者排序最優先。
     *   **判例（已知字號或結構化過濾）**：使用 `taiwan-legal-db:search_judgments`（精確定位，不需雙軌）。
     *   **法規條文**：使用 `taiwan-legal-db:search_regulations`、`get_pcode`、`query_regulation`。
+        *   **母法不等於現行標準（硬性約束）**：台灣法規大量採「母法定基準 ＋ 授權命令調整」雙層結構。凡問題涉及**具體數值或操作基準**（金額、費率、額度、期間、級距、資格門檻、程序要件）者，**不得僅以母法條文作答**，必須依 `legal-research` 技能「步驟二之五：授權子法反查」確認有無授權訂定之辦法／標準／準則；查有子法者**一律以子法為準**，並同時引用母法授權條款與子法（完整名稱、條號、`pcode`）。
     *   **釋字／憲法法庭裁判**：使用 `taiwan-legal-db:search_interpretations`、`get_interpretation`。
 *   **信任閘門 (Trust Gate)**：若檢索工具未能找到關聯的法條或判決，Agent 應啟動信任閘門，誠實告知「查無直接對應之官方文獻」，嚴禁憑空捏造或假定不存在的法規。
 
