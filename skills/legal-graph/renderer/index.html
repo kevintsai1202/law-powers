@@ -223,6 +223,196 @@
       white-space: pre-wrap;
     }
   </style>
+  <style>
+    /* ═══════════════════════════════════════════════════════════
+       程序時序分頁（timeline view）樣式
+       - 僅在 GRAPH_DATA.timeline 存在時顯示（向後相容：舊 data.js 無此鍵則整組隱藏）
+       - 色彩以 #timeline-view 區域變數定義；@media print 翻為淺色供列印附卷
+       ═══════════════════════════════════════════════════════════ */
+    /* 分頁切換鈕（置於 header 中央；無 timeline 資料時 hidden） */
+    #view-tabs{display:flex;gap:8px;}
+    #view-tabs[hidden]{display:none;}
+    #view-tabs button{
+      padding:8px 22px;font-family:inherit;font-size:.9rem;font-weight:600;letter-spacing:.05em;
+      color:var(--text-sub);background:transparent;border:1px solid var(--glass-border);
+      border-radius:8px;cursor:pointer;transition:color .2s,background .2s,box-shadow .2s;
+    }
+    #view-tabs button:hover{color:var(--text-main);}
+    #view-tabs button:focus-visible{outline:2px solid #38bdf8;outline-offset:2px;}
+    #view-tabs button.active{color:#38bdf8;background:var(--panel-bg);box-shadow:0 0 10px var(--glow-color);}
+
+    /* 分頁顯示切換：timeline 啟用時隱藏關係圖主容器 */
+    #timeline-view{display:none;flex:1;overflow-y:auto;padding:26px 34px 44px;}
+    body.view-timeline .main-container{display:none;}
+    body.view-timeline #timeline-view{display:block;}
+
+    /* 區域色彩變數（深色主題；print 翻淺色） */
+    #timeline-view{
+      --t-ink:var(--text-main); --t-muted:#a5b0c2; --t-line:rgba(255,255,255,.14);
+      --t-card:rgba(30,41,59,.55);
+      --t-red:#f87171;   --t-red-bg:rgba(239,68,68,.14);
+      --t-orange:#fbbf24;--t-orange-bg:rgba(234,179,8,.12);
+      --t-green:#4ade80; --t-green-bg:rgba(34,197,94,.12);
+      --t-blue:#38bdf8;  --t-blue-bg:rgba(56,189,248,.10);
+      --t-label-bg:rgba(30,41,59,.94); --t-axis:#94a3b8; --t-grid:rgba(148,163,184,.14);
+      max-width:1200px;margin:0 auto;width:100%;
+    }
+    #timeline-view h2{font-size:1.1rem;font-weight:700;color:var(--t-ink);letter-spacing:.05em;
+      margin:30px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--t-line);position:relative;}
+    #timeline-view h2::before{content:"";position:absolute;left:0;bottom:-1px;width:56px;height:3px;background:var(--t-blue);}
+    #timeline-view .tlv-head{margin-bottom:4px;}
+    #timeline-view .tlv-head h2{margin-top:0;font-size:1.3rem;border:none;}
+    #timeline-view .tlv-head h2::before{display:none;}
+    #timeline-view .tlv-sub{color:var(--t-muted);font-size:.88rem;}
+    #timeline-view .tlv-warn{background:var(--t-orange-bg);border:1px solid var(--t-orange);border-radius:8px;
+      padding:10px 14px;font-size:.88rem;margin:14px 0 4px;color:var(--t-ink);}
+
+    /* 期限參數表單 */
+    .tlv-controls{background:var(--t-card);border:1px solid var(--t-line);border-left:4px solid var(--t-blue);
+      border-radius:8px;padding:14px 16px;display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end;}
+    .tlv-controls label{display:block;font-size:.85rem;font-weight:700;margin-bottom:4px;color:var(--t-ink);}
+    .tlv-controls .hint{font-size:.76rem;color:var(--t-muted);margin-top:3px;max-width:220px;}
+    .tlv-controls input[type=date]{padding:7px 9px;border:1px solid var(--t-line);border-radius:6px;
+      font-size:.92rem;background:rgba(15,23,42,.6);color:var(--t-ink);color-scheme:dark;}
+    .tlv-controls input[type=date]:focus-visible{outline:2px solid var(--t-blue);outline-offset:1px;}
+    .tlv-controls button{padding:9px 18px;border:none;border-radius:6px;background:var(--t-blue);
+      color:#0f172a;font-size:.9rem;font-weight:700;letter-spacing:.15em;cursor:pointer;}
+    .tlv-controls button:hover{filter:brightness(1.1);}
+    .tlv-controls button:focus-visible{outline:2px solid var(--t-ink);outline-offset:2px;}
+
+    /* 期限倒數卡片 */
+    .tlv-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;}
+    .tlv-card{background:var(--t-card);border:1px solid var(--t-line);border-radius:10px;
+      padding:14px 16px;border-top:4px solid var(--t-muted);}
+    .tlv-card.expired{border-top-color:var(--t-red);background:var(--t-red-bg);}
+    .tlv-card.soon{border-top-color:var(--t-orange);background:var(--t-orange-bg);}
+    .tlv-card.ok{border-top-color:var(--t-green);background:var(--t-green-bg);}
+    .tlv-card h3{font-size:.98rem;margin-bottom:6px;color:var(--t-ink);}
+    .tlv-card .big{font-size:1.55rem;font-weight:700;font-variant-numeric:tabular-nums;}
+    .tlv-card.expired .big{color:var(--t-red);}
+    .tlv-card.soon .big{color:var(--t-orange);}
+    .tlv-card.ok .big{color:var(--t-green);}
+    .tlv-card .due{font-size:.85rem;margin-top:4px;color:var(--t-ink);}
+    .tlv-card .basis{font-size:.8rem;color:var(--t-muted);margin-top:6px;line-height:1.5;}
+
+    /* 橫向等比例時間軸 */
+    .tlv-hwrap{overflow-x:auto;background:var(--t-card);border:1px solid var(--t-line);border-radius:10px;padding:16px 8px 8px;}
+    .tlv-hwrap:focus-visible{outline:2px solid var(--t-blue);}
+    .tlv-htl{position:relative;min-width:1350px;height:440px;}
+    .tlv-haxis{position:absolute;left:0;right:0;top:215px;height:2px;background:var(--t-axis);border-radius:2px;}
+    .tlv-htick{position:absolute;top:208px;width:1px;height:17px;background:var(--t-line);}
+    .tlv-hticklabel{position:absolute;top:415px;transform:translateX(-50%);font-size:.75rem;color:var(--t-muted);white-space:nowrap;}
+    .tlv-hgrid{position:absolute;top:10px;bottom:36px;width:1px;background:var(--t-grid);}
+    .tlv-hev{position:absolute;top:215px;width:12px;height:12px;border-radius:50%;transform:translate(-50%,-50%);
+      background:var(--t-blue);border:2px solid #0f172a;box-shadow:0 0 0 2px var(--t-blue);z-index:3;}
+    .tlv-hev.alleged{background:#0f172a;box-shadow:0 0 0 2px var(--t-orange);}
+    .tlv-hev.judgment{background:var(--t-red);box-shadow:0 0 0 2px var(--t-red);}
+    .tlv-hev.dl-expired{background:var(--t-red);box-shadow:0 0 0 2px var(--t-red);}
+    .tlv-hev.dl-soon{background:var(--t-orange);box-shadow:0 0 0 2px var(--t-orange);}
+    .tlv-hev.dl-ok{background:var(--t-green);box-shadow:0 0 0 2px var(--t-green);}
+    .tlv-hconn{position:absolute;width:2px;margin-left:-1px;background:rgba(148,163,184,.5);z-index:1;}
+    .tlv-hconn.dl-expired{background:var(--t-red);}
+    .tlv-hconn.dl-soon{background:var(--t-orange);}
+    .tlv-hconn.dl-ok{background:var(--t-green);}
+    .tlv-hlabel{position:absolute;transform:translateX(-50%);max-width:156px;font-size:.75rem;line-height:1.3;
+      text-align:center;background:var(--t-label-bg);border:1px solid var(--t-line);border-radius:6px;
+      padding:2px 6px;z-index:2;color:var(--t-ink);}
+    .tlv-hlabel b{display:block;font-size:.72rem;color:var(--t-muted);font-weight:400;}
+    .tlv-hlabel.dl-expired{border-color:var(--t-red);color:var(--t-red);}
+    .tlv-hlabel.dl-soon{border-color:var(--t-orange);color:var(--t-orange);}
+    .tlv-hlabel.dl-ok{border-color:var(--t-green);color:var(--t-green);}
+    .tlv-htoday{position:absolute;top:10px;bottom:36px;width:2px;background:var(--t-green);z-index:2;}
+    .tlv-htoday-label{position:absolute;top:-2px;transform:translateX(-50%);font-size:.72rem;color:var(--t-green);
+      font-weight:700;background:var(--t-green-bg);border:1px solid var(--t-green);border-radius:6px;
+      padding:1px 6px;z-index:4;white-space:nowrap;}
+    .tlv-hoff{position:absolute;right:4px;top:6px;font-size:.75rem;color:var(--t-muted);text-align:right;z-index:3;}
+
+    /* 懸停聚焦：淡化非配對元素 */
+    .tlv-hlabel,.tlv-hconn,.tlv-hev,.tlv-htoday,.tlv-htoday-label{transition:opacity .18s ease;}
+    .tlv-htl.focusing .tlv-hlabel:not(.hit),
+    .tlv-htl.focusing .tlv-hconn:not(.hit),
+    .tlv-htl.focusing .tlv-hev:not(.hit){opacity:.12;}
+    .tlv-htl.focusing .tlv-htoday,.tlv-htl.focusing .tlv-htoday-label{opacity:.3;}
+    .tlv-htl.focusing .tlv-hlabel.hit,.tlv-htl.focusing .tlv-hev.hit{z-index:7;}
+    .tlv-htl.focusing .tlv-hconn.hit{width:3px;margin-left:-1.5px;}
+
+    /* 圖例籤 */
+    .tlv-legend{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:10px;font-size:.8rem;color:var(--t-muted);}
+    .tlv-legend .lg{display:inline-flex;align-items:center;gap:6px;}
+    .tlv-legend .dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none;border:2px solid #0f172a;}
+    .tlv-legend .dot.fact{background:var(--t-blue);box-shadow:0 0 0 2px var(--t-blue);}
+    .tlv-legend .dot.alleged{background:#0f172a;box-shadow:0 0 0 2px var(--t-orange);}
+    .tlv-legend .dot.judgment{background:var(--t-red);box-shadow:0 0 0 2px var(--t-red);}
+    .tlv-legend .dot.dl{background:linear-gradient(135deg,var(--t-red) 33%,var(--t-orange) 33% 66%,var(--t-green) 66%);box-shadow:0 0 0 2px var(--t-muted);}
+    .tlv-legend .dot.today{width:3px;height:15px;border-radius:2px;border:none;background:var(--t-green);}
+
+    /* 垂直時間軸 */
+    .tlv-tl{position:relative;margin:10px 0 10px 10px;padding-left:26px;border-left:2px solid var(--t-line);}
+    .tlv-ev{position:relative;margin-bottom:14px;background:var(--t-card);border:1px solid var(--t-line);border-radius:8px;padding:10px 14px;}
+    .tlv-ev::before{content:"";position:absolute;left:-34px;top:16px;width:13px;height:13px;border-radius:50%;
+      background:var(--t-blue);border:3px solid #0f172a;box-shadow:0 0 0 2px var(--t-blue);}
+    .tlv-ev.judgment{border-color:var(--t-red);}
+    .tlv-ev.judgment::before{background:var(--t-red);box-shadow:0 0 0 2px var(--t-red);}
+    .tlv-ev.alleged::before{background:#0f172a;box-shadow:0 0 0 2px var(--t-orange);}
+    .tlv-ev.today{border-color:var(--t-green);background:var(--t-green-bg);}
+    .tlv-ev.today::before{background:var(--t-green);box-shadow:0 0 0 2px var(--t-green);}
+    .tlv-ev.deadline{border:1px dashed var(--t-blue);background:var(--t-blue-bg);}
+    .tlv-ev.deadline::before{background:#0f172a;box-shadow:0 0 0 2px var(--t-blue);}
+    .tlv-ev.deadline .t{color:var(--t-blue);font-weight:700;}
+    .tlv-ev .d{font-weight:700;font-size:.9rem;color:var(--t-ink);font-variant-numeric:tabular-nums;}
+    .tlv-ev .roc{color:var(--t-muted);font-size:.78rem;margin-left:6px;}
+    .tlv-ev .t{font-size:.93rem;color:var(--t-ink);}
+    .tlv-ev .note{font-size:.8rem;color:var(--t-muted);margin-top:2px;}
+
+    /* SVG 圖示（CSS mask，隨 currentColor 上色） */
+    .tlv-hlabel[class*=dl-]::before,.tlv-ev.deadline .t::before,
+    .tlv-htoday-label::before,.tlv-ev.today .t::before,.tlv-warn::before{
+      content:"";display:inline-block;width:.85em;height:.85em;margin-right:.35em;vertical-align:-.08em;
+      background:currentColor;-webkit-mask:var(--ico) center/contain no-repeat;mask:var(--ico) center/contain no-repeat;}
+    .tlv-hlabel[class*=dl-]::before,.tlv-ev.deadline .t::before{
+      --ico:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16zm1-13h-2v6l5 3 1-1.7-4-2.3z"/></svg>');}
+    .tlv-htoday-label::before,.tlv-ev.today .t::before{
+      --ico:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>');}
+    .tlv-warn::before{width:1em;height:1em;color:var(--t-orange);
+      --ico:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2 1 21h22L12 2zm1 14h-2v2h2v-2zm0-7h-2v5h2V9z"/></svg>');}
+
+    /* 程序路線對照表 */
+    .tlv-twrap{overflow-x:auto;border-radius:8px;}
+    .tlv-twrap:focus-visible{outline:2px solid var(--t-blue);}
+    .tlv-twrap table{width:100%;min-width:640px;border-collapse:collapse;background:var(--t-card);font-size:.86rem;color:var(--t-ink);}
+    .tlv-twrap th,.tlv-twrap td{border:1px solid var(--t-line);padding:8px 10px;text-align:left;vertical-align:top;}
+    .tlv-twrap th{background:rgba(56,189,248,.10);border-bottom:2px solid var(--t-blue);}
+    .tlv-tag{display:inline-block;padding:1px 9px;border-radius:99px;font-size:.75rem;font-weight:700;}
+    .tlv-tag.r{background:var(--t-red-bg);color:var(--t-red);border:1px solid var(--t-red);}
+    .tlv-tag.o{background:var(--t-orange-bg);color:var(--t-orange);border:1px solid var(--t-orange);}
+    .tlv-tag.g{background:var(--t-green-bg);color:var(--t-green);border:1px solid var(--t-green);}
+
+    @media (prefers-reduced-motion: reduce){
+      .tlv-hlabel,.tlv-hconn,.tlv-hev,.tlv-htoday,.tlv-htoday-label{transition:none;}
+    }
+
+    /* 列印（附卷）：整組色彩變數翻為淺色、只印時序分頁 */
+    @media print{
+      body.view-timeline{overflow:visible;height:auto;background:#fff;}
+      body.view-timeline header,body.view-timeline #view-tabs{display:none;}
+      body.view-timeline #timeline-view{overflow:visible;
+        --t-ink:#111827; --t-muted:#475569; --t-line:#cbd5e1; --t-card:#fff;
+        --t-red:#b91c1c; --t-red-bg:#fee2e2; --t-orange:#92400e; --t-orange-bg:#fef3c7;
+        --t-green:#166534; --t-green-bg:#dcfce7; --t-blue:#1e40af; --t-blue-bg:#dbeafe;
+        --t-label-bg:#fff; --t-axis:#334155; --t-grid:#e2e8f0;
+        -webkit-print-color-adjust:exact;print-color-adjust:exact;}
+      body.view-timeline .tlv-hev,body.view-timeline .tlv-hev.alleged,
+      body.view-timeline .tlv-legend .dot,body.view-timeline .tlv-legend .dot.alleged,
+      body.view-timeline .tlv-ev::before,body.view-timeline .tlv-ev.alleged::before,
+      body.view-timeline .tlv-ev.deadline::before{border-color:#fff;}
+      body.view-timeline .tlv-hev.alleged,body.view-timeline .tlv-legend .dot.alleged,
+      body.view-timeline .tlv-ev.alleged::before,body.view-timeline .tlv-ev.deadline::before{background:#fff;}
+      body.view-timeline .tlv-controls button{display:none;}
+      body.view-timeline .tlv-card,body.view-timeline .tlv-ev,body.view-timeline .tlv-hwrap,
+      body.view-timeline .tlv-twrap,body.view-timeline tr{break-inside:avoid;}
+      body.view-timeline h2{break-after:avoid;}
+    }
+  </style>
 </head>
 <body>
 
@@ -232,6 +422,11 @@
       <h1>台灣法律關係圖可視化系統</h1>
       <p>Taiwan Legal Knowledge Graph Visualizer</p>
     </div>
+    <!-- 分頁切換：僅在 GRAPH_DATA.timeline 存在時由腳本顯示（向後相容） -->
+    <nav id="view-tabs" hidden aria-label="檢視切換">
+      <button type="button" data-view="graph" class="active" aria-pressed="true">關係圖</button>
+      <button type="button" data-view="timeline" aria-pressed="false">程序時序</button>
+    </nav>
     <div>
       <p>基於 3D Force-Graph 力導向引擎</p>
     </div>
@@ -318,6 +513,42 @@
       </div>
     </div>
 
+  </div>
+
+  <!-- 程序時序分頁（資料驅動：GRAPH_DATA.timeline 不存在時整組隱藏，內容由腳本渲染） -->
+  <div id="timeline-view">
+    <div class="tlv-head">
+      <h2 id="tlv-title">程序時序儀表板</h2>
+      <div class="tlv-sub" id="tlv-caseno"></div>
+    </div>
+    <div class="tlv-warn" id="tlv-warn" hidden></div>
+
+    <h2>一、期限參數（可調整，自動重算）</h2>
+    <div class="tlv-controls" id="tlv-controls"></div>
+
+    <h2>二、程序期限倒數（自動依急迫度上色）</h2>
+    <div class="tlv-cards" id="tlv-cards" aria-live="polite"></div>
+
+    <h2>三、橫向比例時間軸（時間間距＝實際天數等比例）</h2>
+    <div class="tlv-hwrap" tabindex="0" aria-label="橫向等比例時間軸，可左右捲動檢視"><div class="tlv-htl" id="tlv-htl"></div></div>
+    <div class="tlv-legend" aria-label="時間軸圖例">
+      <span class="lg"><i class="dot fact"></i>認定事實</span>
+      <span class="lg"><i class="dot alleged"></i>當事人陳述（法院未認定）</span>
+      <span class="lg"><i class="dot judgment"></i>判決宣判</span>
+      <span class="lg"><i class="dot dl"></i>期限節點（依急迫度上色）</span>
+      <span class="lg"><i class="dot today"></i>今日基準線</span>
+    </div>
+    <div class="tlv-sub" id="tlv-offnote" style="margin-top:6px;" hidden></div>
+
+    <h2>四、案件事實時間軸</h2>
+    <div class="tlv-tl" id="tlv-tl"></div>
+
+    <div id="tlv-routes-sec" hidden>
+      <h2>五、程序路線對照表</h2>
+      <div class="tlv-twrap" tabindex="0" aria-label="程序路線對照表，可左右捲動檢視">
+        <table id="tlv-routes"></table>
+      </div>
+    </div>
   </div>
 
   <!-- 3D 渲染函式庫：載入順序不可調換，three.min.js 需先於 three-spritetext.min.js，
@@ -865,6 +1096,294 @@ c.readability=function(t,n){var i=c(t),r=c(n);return(e.max(i.getLuminance(),r.ge
       bindSearch();
     });
 
+  </script>
+  <script>
+  // ═══════════════════════════════════════════════════════════
+  // 程序時序分頁引擎（通用、資料驅動）
+  // - 讀取 window.GRAPH_DATA.timeline；不存在時分頁與視圖整組隱藏（向後相容）
+  // - 期限規則為宣告式資料：{name, base:<param id>, add:{days|months|years}, basis, note, offAxis}
+  //   計算引擎固定於此，法條依據（basis）由技能引導 Agent 經查證後寫入 data.js
+  // - 全程以 DOM API（textContent）建構，不使用 innerHTML
+  // ═══════════════════════════════════════════════════════════
+  (function(){
+    const T = window.GRAPH_DATA && window.GRAPH_DATA.timeline;
+    if (!T || !Array.isArray(T.deadlines) || !Array.isArray(T.events)) return;
+
+    // ---------- 分頁切換 ----------
+    // 橫向軸的標籤避讓依賴 getBoundingClientRect 實測，display:none 下量測皆為 0，
+    // 故橫向軸採懶渲染：切到時序分頁時才（重）繪，pendingH 暫存最近一次計算結果
+    let pendingH = null;
+    const tabs = document.getElementById('view-tabs');
+    tabs.hidden = false;
+    tabs.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const isTl = btn.dataset.view === 'timeline';
+        document.body.classList.toggle('view-timeline', isTl);
+        tabs.querySelectorAll('button').forEach(b => {
+          const on = b === btn;
+          b.classList.toggle('active', on);
+          b.setAttribute('aria-pressed', String(on));
+        });
+        if (isTl && pendingH) { renderHorizontal(pendingH.today, pendingH.dues); pendingH = null; }
+      });
+    });
+
+    // ---------- 共用工具 ----------
+    /** 以本地時區格式化（不可用 toISOString：UTC 會使 +8 時區的本地午夜倒退一天） */
+    const fmt = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const rocFmt = d => `民國 ${d.getFullYear()-1911} 年 ${d.getMonth()+1} 月 ${d.getDate()} 日`;
+    const addDays   = (d,n) => { const x=new Date(d); x.setDate(x.getDate()+n); return x; };
+    const addMonths = (d,n) => { const x=new Date(d); x.setMonth(x.getMonth()+n); return x; };
+    const addYears  = (d,n) => { const x=new Date(d); x.setFullYear(x.getFullYear()+n); return x; };
+    const CN = '①②③④⑤⑥⑦⑧⑨⑩⑪⑫';
+    /** 建立元素小工具（textContent，安全）：tag 可省略預設 div */
+    function el(parent, tag, cls, text){
+      const node = document.createElement(tag || 'div');
+      if (cls) node.className = cls;
+      if (text !== undefined && text !== null && text !== '') node.textContent = text;
+      if (parent) parent.appendChild(node);
+      return node;
+    }
+    const mk = (parent, cls, styleObj, text) => {
+      const node = el(parent, 'div', cls, text);
+      if (styleObj) Object.assign(node.style, styleObj);
+      return node;
+    };
+    /** 依剩餘天數決定急迫度：逾期紅／30 日內橙／其餘綠 */
+    function status(deadline, today){
+      const days = Math.floor((deadline - today) / 86400000);
+      if (days < 0)   return { cls:'expired', tag:'r', label:'已逾期', days };
+      if (days <= 30) return { cls:'soon',    tag:'o', label:'急迫',   days };
+      return             { cls:'ok',          tag:'g', label:'期限內', days };
+    }
+    /** 依宣告式規則計算期限：base 參數日 + add（days/months/years 可並用） */
+    function computeDue(rule, paramDates){
+      let d = new Date(paramDates[rule.base]);
+      const a = rule.add || {};
+      if (a.days)   d = addDays(d, a.days);
+      if (a.months) d = addMonths(d, a.months);
+      if (a.years)  d = addYears(d, a.years);
+      return d;
+    }
+
+    // ---------- 靜態區塊（標題、警語、參數表單） ----------
+    if (T.title)  document.getElementById('tlv-title').textContent = T.title;
+    if (T.caseNo) document.getElementById('tlv-caseno').textContent = T.caseNo;
+    const warnEl = document.getElementById('tlv-warn');
+    if (T.warn) { warnEl.hidden = false; warnEl.textContent = T.warn; }
+
+    const controls = document.getElementById('tlv-controls');
+    (T.params || []).forEach(p => {
+      const wrap = el(controls, 'div');
+      const lab = el(wrap, 'label', '', p.label);
+      lab.htmlFor = 'tlv-p-' + p.id;
+      const input = el(wrap, 'input');
+      input.type = 'date'; input.id = 'tlv-p-' + p.id; input.value = p.default || '';
+      input.addEventListener('change', recalc);
+      if (p.hint) el(wrap, 'div', 'hint', p.hint);
+    });
+    const btn = el(controls, 'button', '', '重新計算');
+    btn.type = 'button';
+    btn.addEventListener('click', recalc);
+
+    // ---------- 重算：卡片、對照表狀態、兩條時間軸 ----------
+    function recalc(){
+      const today = new Date(); today.setHours(0,0,0,0);
+      const paramDates = {};
+      (T.params || []).forEach(p => { paramDates[p.id] = document.getElementById('tlv-p-' + p.id).value; });
+
+      const dues = T.deadlines.map(dl => ({ ...dl, due: computeDue(dl, paramDates) }));
+
+      // 期限倒數卡片
+      const cards = document.getElementById('tlv-cards');
+      cards.replaceChildren();
+      dues.forEach((dl, i) => {
+        const s = status(dl.due, today);
+        const dayText = s.days < 0 ? `已逾 ${(-s.days).toLocaleString('zh-TW')} 天`
+                                   : `剩 ${s.days.toLocaleString('zh-TW')} 天`;
+        const card = el(cards, 'div', 'tlv-card ' + s.cls);
+        el(card, 'h3', '', `${CN[i] || ''} ${dl.name}`);
+        el(card, 'div', 'big', dayText);
+        el(card, 'div', 'due', `期限：${fmt(dl.due)}（${rocFmt(dl.due)}）`);
+        const basis = el(card, 'div', 'basis', dl.basis || '');
+        if (dl.note) { basis.appendChild(document.createElement('br')); basis.appendChild(document.createTextNode(dl.note)); }
+      });
+
+      // 程序路線對照表（選用）
+      if (Array.isArray(T.routes) && T.routes.length) {
+        document.getElementById('tlv-routes-sec').hidden = false;
+        const table = document.getElementById('tlv-routes');
+        table.replaceChildren();
+        const head = el(table, 'tr');
+        ['順位','程序','期限依據（經查證條文）','狀態','建議'].forEach(h => {
+          const th = el(head, 'th', '', h); th.scope = 'col';
+        });
+        T.routes.forEach((r, i) => {
+          const tr = el(table, 'tr');
+          el(tr, 'td', '', String(i + 1));
+          el(tr, 'td', '', r.name);
+          el(tr, 'td', '', r.basis || '—');
+          const tdTag = el(tr, 'td');
+          const hit = r.deadline && dues.find(d => d.name === r.deadline);
+          if (hit) { const s = status(hit.due, today); el(tdTag, 'span', 'tlv-tag ' + s.tag, s.label); }
+          else el(tdTag, 'span', 'tlv-tag ' + (r.statusCls || 'o'), r.statusText || '評估中');
+          el(tr, 'td', '', r.advice || '');
+        });
+      }
+
+      renderVertical(today, dues);
+      if (document.body.classList.contains('view-timeline')) { renderHorizontal(today, dues); pendingH = null; }
+      else pendingH = { today, dues };
+    }
+
+    // ---------- 垂直時間軸：事件＋今日＋期限節點（deadline 專屬樣式，與陳述區隔） ----------
+    function renderVertical(today, dues){
+      const items = T.events.map(e => ({ ...e }));
+      items.push({ d: fmt(today), roc: rocFmt(today), t: '今日', note: '以下均為計算所得之未來（或已過）期限', cls: 'today' });
+      dues.filter(dl => !dl.offAxis).forEach(dl => {
+        items.push({ d: fmt(dl.due), roc: '', t: `${dl.name}屆滿（依上方參數計算）`, note: dl.note || dl.basis || '', cls: 'deadline' });
+      });
+      items.sort((a,b) => a.d.localeCompare(b.d));
+      const tl = document.getElementById('tlv-tl');
+      tl.replaceChildren();
+      items.forEach(e => {
+        const ev = el(tl, 'div', 'tlv-ev ' + (e.cls || ''));
+        el(ev, 'span', 'd', e.d);
+        if (e.roc) el(ev, 'span', 'roc', e.roc);
+        el(ev, 'div', 't', e.t);
+        if (e.note) el(ev, 'div', 'note', e.note);
+      });
+    }
+
+    // ---------- 橫向等比例時間軸：x 座標＝(日期−起點)÷(終點−起點) ----------
+    function renderHorizontal(today, dues){
+      const onAxis = dues.filter(dl => !dl.offAxis);
+      const offAxis = dues.filter(dl => dl.offAxis);
+      const evDates = T.events.map(e => +new Date(e.d));
+      const start = addDays(new Date(Math.min(...evDates, +today)), -23);
+      const end   = addDays(new Date(Math.max(...onAxis.map(d => +d.due), +today)), T.axisPadDays || 45);
+      const span  = end - start;
+      const xPct  = d => ((new Date(d) - start) / span * 100);
+
+      const box = document.getElementById('tlv-htl');
+      box.replaceChildren();
+
+      // 刻度與格線：跨度大時改半年一格，維持可讀性
+      const stepMonths = span > 1200 * 86400000 ? 6 : 3;
+      const tick = new Date(start.getFullYear(), start.getMonth() + 1, 1);
+      for (let t = new Date(tick); t <= end; t.setMonth(t.getMonth() + stepMonths)) {
+        const x = xPct(t) + '%';
+        mk(box, 'tlv-hgrid', { left: x });
+        mk(box, 'tlv-htick', { left: x });
+        mk(box, 'tlv-hticklabel', { left: x }, `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}`);
+      }
+      mk(box, 'tlv-haxis', null);
+
+      // 今日垂直線（先畫並登記其標籤矩形，後續標籤放置會避開它）
+      const placed = [];
+      const boxR0 = box.getBoundingClientRect();
+      const tx = xPct(today) + '%';
+      mk(box, 'tlv-htoday', { left: tx });
+      const tlb = mk(box, 'tlv-htoday-label', { left: tx }, `今日 ${fmt(today)}`);
+      {
+        const r = tlb.getBoundingClientRect();
+        placed.push({ L: r.left - boxR0.left, R: r.right - boxR0.left, T: r.top - boxR0.top, B: r.bottom - boxR0.top });
+      }
+
+      // 節點組裝：事件＋入軸期限，依 x 排序
+      const items = T.events.map(e => ({ x: xPct(e.d), cls: e.cls || '', short: String(e.t).replace(/（.*?）/g, ''), d: e.d }));
+      onAxis.forEach(dl => {
+        const s = status(dl.due, today);
+        items.push({ x: xPct(dl.due), cls: 'dl-' + s.cls, short: `${dl.name}（${s.label}）`, d: fmt(dl.due) });
+      });
+      items.sort((a, b) => a.x - b.x);
+
+      // 標籤避讓：六條車道（軸上近→遠三道、軸下三道）。
+      // 軸上標籤以「底邊」錨定——不論標籤多高都只向上生長，絕不壓到軸線；
+      // 放置採全 2D 碰撞檢測（渲染後實際矩形 vs 所有已放置矩形）。
+      const AXIS_Y = 215, DOT_R = 7;
+      const ABOVE_ANCHOR = [206, 148, 90];
+      const BELOW_ANCHOR = [246, 302, 358];
+      const laneOrder = [0, 3, 1, 4, 2, 5];
+      const GAP_X = 8, GAP_Y = 4;
+      const topFor = (lane, h) => lane < 3 ? Math.max(ABOVE_ANCHOR[lane] - h, 2) : BELOW_ANCHOR[lane - 3];
+      const hits = (a, b) => a.L < b.R && b.L < a.R && a.T - GAP_Y < b.B && b.T < a.B + GAP_Y;
+
+      let idx = 0;                                             // 節點／標籤／引線三件套配對碼
+      for (const it of items) {
+        const k = String(idx++);
+        const x = it.x + '%';
+        const dlCls = it.cls && it.cls.startsWith('dl-') ? it.cls : '';
+
+        const dot = mk(box, 'tlv-hev ' + it.cls, { left: x });
+        dot.dataset.k = k;
+        const lb = mk(box, 'tlv-hlabel ' + dlCls, { left: x, top: '0px' }, it.short);
+        lb.dataset.k = k;
+        if (it.x < 6) lb.style.transform = 'translateX(-8%)';  // 靠左緣：左對齊避免裁切
+        if (it.x > 94) {                                       // 靠右緣：改用 right 定位——
+          lb.style.left = 'auto';                              // 若用 left+位移，排版寬度會被
+          lb.style.right = (100 - it.x) + '%';                 // 容器右邊界擠成細長條
+          lb.style.transform = 'translateX(6px)';
+        }
+        el(lb, 'b', '', it.d);
+
+        // 量測實際矩形後挑車道：與所有已放置標籤（含今日籤）皆不相交才入駐
+        const r = lb.getBoundingClientRect();
+        const L = r.left - boxR0.left - GAP_X, R = r.right - boxR0.left + GAP_X, H = r.height;
+        const rectAt = lane => ({ L, R, T: topFor(lane, H), B: topFor(lane, H) + H });
+        let lane = laneOrder.find(c => placed.every(p => !hits(rectAt(c), p)));
+        if (lane === undefined) {                              // 六道全滿：取重疊面積最小者
+          const ovl = c => placed.reduce((m, p) => {
+            const q = rectAt(c);
+            return m + Math.max(0, Math.min(q.R, p.R) - Math.max(q.L, p.L)) * Math.max(0, Math.min(q.B, p.B) - Math.max(q.T, p.T));
+          }, 0);
+          lane = laneOrder.reduce((a, b) => (ovl(a) <= ovl(b) ? a : b));
+        }
+        const top = topFor(lane, H);
+        placed.push({ L, R, T: top, B: top + H });
+        lb.style.top = top + 'px';
+
+        // 引線：標籤邊緣 ↔ 節點邊緣（期限節點引線同色）
+        const isAbove = lane < 3;
+        const connTop = isAbove ? top + H : AXIS_Y + DOT_R;
+        const connH   = Math.max(isAbove ? (AXIS_Y - DOT_R) - (top + H) : top - (AXIS_Y + DOT_R), 0);
+        const conn = mk(box, 'tlv-hconn ' + dlCls, { left: x, top: connTop + 'px', height: connH + 'px' });
+        conn.dataset.k = k;
+      }
+
+      // 懸停聚焦：滑過標籤或節點時淡化其他元素，凸顯所屬三件套
+      box.addEventListener('mouseover', e => {
+        const t = e.target.closest('.tlv-hlabel,.tlv-hev');
+        if (!t || t.dataset.k === undefined) return;
+        box.classList.add('focusing');
+        box.querySelectorAll(`[data-k="${t.dataset.k}"]`).forEach(n => n.classList.add('hit'));
+      });
+      box.addEventListener('mouseout', e => {
+        const t = e.target.closest('.tlv-hlabel,.tlv-hev');
+        if (!t) return;
+        box.classList.remove('focusing');
+        box.querySelectorAll('.hit').forEach(n => n.classList.remove('hit'));
+      });
+
+      // 不入軸期限之右側註記（跨度過大的期限入軸會壓縮其他節點）
+      const offNote = document.getElementById('tlv-offnote');
+      if (offAxis.length) {
+        offNote.hidden = false;
+        offNote.textContent = offAxis.map(dl => {
+          const i = dues.indexOf(dl);
+          return `${CN[i] || ''} ${dl.name} ${fmt(dl.due)}（跨度過大，超出等比例顯示範圍，不入軸）`;
+        }).join('；');
+        offAxis.forEach((dl, j) => {
+          const i = dues.indexOf(dl);
+          const off = mk(box, 'tlv-hoff', { top: (6 + j * 34) + 'px' }, `${CN[i] || ''} ${dl.name} ${fmt(dl.due)} ─────▶`);
+          off.appendChild(document.createElement('br'));
+          off.appendChild(document.createTextNode('（超出等比例顯示範圍）'));
+        });
+      }
+    }
+
+    recalc();
+  })();
   </script>
 </body>
 </html>
