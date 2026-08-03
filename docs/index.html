@@ -968,8 +968,8 @@
           </article>
           <article class="card feature-card reveal">
             <span class="feature-number">05 / LEGAL-GRAPH</span>
-            <h3>法律關係圖</h3>
-            <p>將事實、法條、判決、爭點、當事人與證據整理成可互動檢視的關係圖。</p>
+            <h3>法律關係圖與案件視覺化</h3>
+            <p>將事實、法條、判決、爭點、當事人與證據整理成可互動檢視的 3D 關係圖；期限案件可加掛「程序時序」儀表板分頁，另可產出 SVG 訴訟決策樹＋因果徑路圖供書狀附圖。</p>
           </article>
           <article class="card feature-card reveal">
             <span class="feature-number">06 / COMPLIANCE</span>
@@ -996,7 +996,7 @@
         <div class="section-head reveal">
           <p class="section-kicker">Usage examples</p>
           <h2 class="section-title">一句話的委託，換一條可查證的工作流</h2>
-          <p class="section-desc">三種典型情境：訴訟主線、契約支線與公文輔助——每一步引用什麼、缺什麼證據，都交代得清楚。</p>
+          <p class="section-desc">四種典型情境：訴訟主線、契約支線、公文輔助與視覺化支線——每一步引用什麼、缺什麼證據，都交代得清楚。</p>
         </div>
         <div class="examples-grid">
           <article class="card example-card reveal">
@@ -1017,6 +1017,12 @@
             <p>先判斷行文方向（上行／平行／下行），再套用「主旨／說明／辦法」段落結構與正確稱謂、期望目的語；引用的法規字號一律先經檢索查證，不憑記憶杜撰。</p>
             <div class="example-flow"><span>official-document</span> →（法源查證）<span>research</span></div>
           </article>
+          <article class="card example-card reveal">
+            <span class="example-label">CASE 04 / 訴訟決策與期限管理</span>
+            <div class="example-prompt">「幫我畫出這個案子的訴訟決策樹和因果關係徑路圖，並整理上訴、告訴與時效期限。」</div>
+            <p>SVG 單檔雙面板：上面板決策樹的每個「若…則…」分支錨定已查證條號或判決（未查證者虛線框）；下面板因果鏈的 ○✗△ 評價一律轉錄涵攝表。期限部分寫入 timeline 欄位，渲染頁自動出現「程序時序」分頁——倒數、時間軸與程序路線對照，起算日可調並自動重算。</p>
+            <div class="example-flow"><span>element-analysis</span> → <span>graph（SVG＋時序）</span> →（期限查證）<span>research</span></div>
+          </article>
         </div>
       </div>
     </section>
@@ -1035,7 +1041,7 @@
               <li><b>01</b><div><strong>對 Agent 下產圖指令</strong><p>例：「幫我把這個案件的事實、法條、判決與爭點整理成法律關係圖」，legal-graph 會組裝 superset 格式的節點與連線資料。</p></div></li>
               <li><b>02</b><div><strong>Agent 將資料寫入 data.js</strong><p>完整開發專案寫在專案根目錄；skills-only 安裝寫在 skills/legal-graph/renderer/data.js——與 index.html 同組即可。</p></div></li>
               <li><b>03</b><div><strong>瀏覽器開啟同組 index.html</strong><p>頁面自動讀取 window.GRAPH_DATA 渲染 3D 圖譜（需支援 WebGL）；自包含單檔、離線可用。</p></div></li>
-              <li><b>04</b><div><strong>互動檢視與更新</strong><p>拖曳旋轉、滾輪縮放、點節點看詳情（勝敗徽章／條款風險／要件該當性）、依節點類型篩選；換案件時以新資料覆寫 data.js 再重新整理。</p></div></li>
+              <li><b>04</b><div><strong>互動檢視與更新</strong><p>拖曳旋轉、滾輪縮放、點節點看詳情（勝敗徽章／條款風險／要件該當性）、依節點類型篩選；data.js 含 timeline 欄位時右上自動出現「程序時序」分頁；換案件時以新資料覆寫 data.js 再重新整理。</p></div></li>
             </ol>
           </article>
           <article class="card battle-card defense reveal">
@@ -1107,6 +1113,14 @@
           <p class="section-desc">技能包的每一次演進，都和判決引用一樣可以被追溯。</p>
         </div>
         <ol class="timeline reveal">
+          <li class="timeline-group">
+            <span class="timeline-date">2026-08-03</span>
+            <ul class="timeline-list">
+              <li>legal-graph 新增 SVG「訴訟決策樹＋因果關係徑路圖」單檔雙面板圖：決策分支錨定已查證條號／判決（未查證者虛線框）、因果評價 ○✗△ 一律轉錄涵攝表，離線可開、可列印附卷。</li>
+              <li>legal-graph 新增「程序時序」儀表板分頁：期限倒數、等比例時間軸與程序路線對照表；起算日可調並自動重算，列印自動轉淺色版面。</li>
+              <li>legal-research 觸發說明改寫為台灣法律問題的強制入口，明確列出裁判費、時效等數值型觸發語。</li>
+            </ul>
+          </li>
           <li class="timeline-group">
             <span class="timeline-date">2026-07-31</span>
             <ul class="timeline-list">
