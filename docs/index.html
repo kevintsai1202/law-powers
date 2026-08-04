@@ -940,7 +940,7 @@
     <section class="section section-border" id="skills" data-od-id="skill-suite">
       <div class="container">
         <div class="section-head reveal">
-          <p class="section-kicker">Eight focused skills</p>
+          <p class="section-kicker">Nine focused skills</p>
           <h2 class="section-title">從一團混亂的案情，到可查證的法律文件</h2>
           <p class="section-desc">每項技能只負責一件事，避免在同一個 Prompt 裡混合研究、策略、視覺化與文字校訂。</p>
         </div>
@@ -986,6 +986,12 @@
             <h3>政府公文書撰寫</h3>
             <p>函、書函、公告、簽的段落結構與稱謂、期望目的語，依《文書處理手冊》套用；先判對行文方向（上行／平行／下行），用語才不會全盤用錯。</p>
             <div class="feature-code"><span>主旨</span> → 說明 → 辦法（函）／擬辦（簽）</div>
+          </article>
+          <article class="card feature-card reveal">
+            <span class="feature-number">09 / LAWBANK-QUERY-BUILDER</span>
+            <h3>法源法律網檢索式產生器</h3>
+            <p>函釋、法學論著、修法沿革等官方免費庫查不到的資料，轉譯成法源布林檢索式（＆且、＋或、－不含）與分區入口，由使用者本人登入人工檢索；貼回結果經驗證標註後才能引用。不自動連線、不碰帳密、不建庫——遵守法源會員條款。</p>
+            <div class="feature-code"><span>需求</span> → 檢索卡 → 人工檢索 → 貼回驗證</div>
           </article>
         </div>
       </div>
@@ -1114,6 +1120,13 @@
         </div>
         <ol class="timeline reveal">
           <li class="timeline-group">
+            <span class="timeline-date">2026-08-04</span>
+            <ul class="timeline-list">
+              <li>新增 lawbank-query-builder 法源法律網檢索式產生器：函釋／論著／修法沿革需求轉譯為布林檢索式與分區入口，由使用者本人登入人工檢索；技能鐵律明訂不自動連線、不碰帳密、不建庫（遵守法源會員條款）。</li>
+              <li>legal-research 路由表新增函釋／論著／修法沿革轉介列，信任閘門範本加入法源人工擴大檢索選項。</li>
+            </ul>
+          </li>
+          <li class="timeline-group">
             <span class="timeline-date">2026-08-03</span>
             <ul class="timeline-list">
               <li>legal-graph 新增 SVG「訴訟決策樹＋因果關係徑路圖」單檔雙面板圖：決策分支錨定已查證條號／判決（未查證者虛線框）、因果評價 ○✗△ 一律轉錄涵攝表，離線可開、可列印附卷。</li>
@@ -1160,7 +1173,7 @@
         <div class="cta-card reveal">
           <p class="section-kicker">Law is Code · Evidence is the Gate</p>
           <h2>讓 AI 的每一句法律主張，都能交代它從哪裡來</h2>
-          <p>law-powers 是開源的 Prompt-Only 技能包。以下指令會將全部 8 個技能安裝到使用者層級，並套用至系統偵測到的所有支援 Agent；法源 MCP 工具仍需依 README 完成設定。</p>
+          <p>law-powers 是開源的 Prompt-Only 技能包。以下指令會將全部 9 個技能安裝到使用者層級，並套用至系統偵測到的所有支援 Agent；法源 MCP 工具仍需依 README 完成設定。</p>
           <div class="install-box">
             <code id="install-command">npx skills add kevintsai1202/law-powers -g --all</code>
             <button class="copy-button" id="copy-command" type="button">複製指令</button>
