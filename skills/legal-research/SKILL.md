@@ -45,8 +45,11 @@ graph TD
 ### 步驟零：環境檢測與自動安裝 (Environment Check & Bootstrapping)
 *   **偵測**：依 agents-rules §5.1 檢視可用工具清單中是否已載入 `taiwan-legal-db`（必要）與 `dr-lawbot`（建議）兩個 MCP 伺服器之工具（命名依平台而異，如 Claude Code 之 `mcp__taiwan-legal-db__*` 前綴）；**不得**以呼叫失敗反推、也不得憑記憶續答。
 *   **缺 `taiwan-legal-db`**：**無條件暫停後續分析**，主動詢問使用者是否同意依 agents-rules §5.3 自動安裝與註冊（先辨識當前 agent 平台，再依 §5.3 對照表選擇該平台之 CLI 指令或手動設定檔；含 pip／pipx 選擇與 PATH 確認）。
-*   **僅缺 `dr-lawbot`**：**不阻斷分析**——提示可安裝以提升相關判例檢索，並依步驟二「優雅降級」先以 `taiwan-legal-db:search_judgments` 關鍵字單軌續行，不得 fail-closed。
+*   **僅缺 `dr-lawbot`**：**不阻斷分析**——依步驟二「優雅降級」先以 `taiwan-legal-db:search_judgments` 關鍵字單軌續行，不得 fail-closed；同時依 agents-rules §5.1 三態判定區分成因後再給建議：
+    *   **未註冊** → 提示可依 §5.3 安裝以提升相關判例檢索。
+    *   **已註冊但未授權**（設定檔有條目、工具清單無工具，或平台顯示「需認證／not connected」）→ `dr-lawbot` 為需 OAuth 授權之 remote MCP，**不要建議重跑註冊指令**；依 §5.6 告知使用者須於**互動式**環境自行完成授權（Claude Code：`/mcp` → 選 `dr-lawbot` → `Authenticate`）。Agent 不得代為授權，亦不得索取授權碼或 token。
 *   **安裝後**：遵守 agents-rules §5.4 重啟硬閘門——重啟 IDE／session 前不得繼續任何需檢索之步驟；重啟後先執行 §5.5 煙霧測試（`query_regulation` 查《中華民國民法》第 184 條）確認連線，再進入步驟一。
+*   **授權後**：授權結果寫在磁碟、工具清單是 session 啟動時的記憶體快照，兩者不會即時同步。故授權完成而當前 session 仍看不到工具時，屬**預期行為**——依 §5.4 重啟即可，不需重新授權（詳 §5.6.3）。
 
 ### 步驟一：構建檢索關鍵詞 (Query Formulation)
 *   **規則**：不要直接拿使用者口語化的描述進行搜尋。必須將其轉化為台灣法律用語的關鍵字組合。
@@ -104,7 +107,8 @@ graph TD
 *   **降級**：環境不支援子代理時，改為串行執行各組查詢，流程與驗證規則不變。
 
 #### 優雅降級
-*   若環境未配置 `dr-lawbot`，判例檢索改用 `taiwan-legal-db:search_judgments` 關鍵字單軌檢索（合併去重規則自然退化為單軌），並**一次性**告知：「語意檢索未啟用，目前以關鍵字檢索；安裝 dr-lawbot 可提升相關判例檢索的涵蓋。」不 fail-closed。
+*   若環境未配置 `dr-lawbot`**或已註冊但 OAuth 未授權**（兩者對工具清單的效果相同，見 agents-rules §5.1 三態判定），判例檢索改用 `taiwan-legal-db:search_judgments` 關鍵字單軌檢索（合併去重規則自然退化為單軌），並**一次性**告知：「語意檢索未啟用，目前以關鍵字檢索；啟用 dr-lawbot 可提升相關判例檢索的涵蓋。」不 fail-closed。
+*   **降級期間須主動標註召回風險**：關鍵字軌對「論理相近但用詞不同」之判決召回率偏低（實測：以完整法律語句作 keyword 常回 0 筆，須拆短再試）。報告中應註明本次僅單軌命中，語意軌恢復後值得補跑。
 
 
 ### 步驟二之五：授權子法反查 (Authorized Subordinate Law Lookup)

@@ -897,6 +897,7 @@
               <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6" stroke-linecap="round"/></svg>語意模糊搜尋，不必先知道完整法律關鍵字</li>
               <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6" stroke-linecap="round"/></svg>回傳裁判片段、引用連結與審級關係</li>
               <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6" stroke-linecap="round"/></svg>以 allowed_citations 區分可引用與未讀候選</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6" stroke-linecap="round"/></svg>需 OAuth 授權：註冊後另以 /mcp → Authenticate 完成，未授權時技能自動降級為關鍵字單軌</li>
             </ul>
             <a class="text-link" href="https://github.com/aa0101181514/tw-legal-rag" target="_blank" rel="noopener noreferrer">查看開源專案 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6" stroke-linecap="round"/></svg></a>
           </article>
@@ -1119,6 +1120,14 @@
           <p class="section-desc">技能包的每一次演進，都和判決引用一樣可以被追溯。</p>
         </div>
         <ol class="timeline reveal">
+          <li class="timeline-group">
+            <span class="timeline-date">2026-08-06</span>
+            <ul class="timeline-list">
+              <li>共用規則 agents-rules §5 補強 remote MCP 授權處理：工具偵測改為三態判定（未註冊／已註冊但未授權／可用），避免把 token 過期誤判為未安裝而重跑註冊指令。</li>
+              <li>新增 §5.6 dr-lawbot OAuth 授權與失效排查：授權方式平台對照、401 探測與負向快取三層診斷、授權後須重啟 session、禁止以 curl 帶 token 繞過白名單分流。</li>
+              <li>legal-research 步驟零依三態分流；降級時須標註關鍵字單軌的召回風險。README 新增「註冊 ≠ 可用」小節。</li>
+            </ul>
+          </li>
           <li class="timeline-group">
             <span class="timeline-date">2026-08-04</span>
             <ul class="timeline-list">

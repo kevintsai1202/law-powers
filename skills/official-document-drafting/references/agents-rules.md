@@ -41,6 +41,12 @@
 
 ### 5.1 工具偵測方法（平台中立）
 *   **判定依據**：檢視當前 session 的**可用工具清單**，確認 `taiwan-legal-db` 與 `dr-lawbot` 兩個 MCP 伺服器之工具已載入。工具命名依平台而異——Claude Code 為 `mcp__taiwan-legal-db__*` 前綴；Gemini CLI／Antigravity 以伺服器名稱分組列示；其他 agent 依其 MCP 工具命名慣例。無法從工具清單判定時，改以該平台之 MCP 清單指令（`claude mcp list`／`gemini mcp list`／`codex mcp list`）或 MCP 設定檔內容佐證。
+*   **三態判定（不可只分「有／無」）**：remote MCP（如 `dr-lawbot`）有三種狀態，處置方式完全不同，**誤判會導向錯誤的修復動作**：
+    | 狀態 | 表徵 | 處置 |
+    |---|---|---|
+    | **未註冊** | 設定檔無該伺服器條目 | 依 §5.3 引導安裝與註冊 |
+    | **已註冊但未授權** | 設定檔有條目，但工具清單無其工具；平台常另有「需認證／not connected」提示 | 依 §5.6 完成 OAuth 授權——**不要重跑註冊指令**，重註冊不會補上 token |
+    | **可用** | 工具清單可見其工具 | 直接使用 |
 *   **禁止**：不得以「先呼叫一次查詢、看它失敗」反推工具不存在；亦不得因工具不存在就憑記憶回答法律問題（違反 §1 檢索優先原則）。Agent 亦**不得假設使用者環境為特定平台**——偵測與安裝一律先辨識當前平台再選擇對應途徑。
 
 ### 5.2 依賴矩陣（各技能缺工具時之行為）
@@ -53,6 +59,8 @@
 | `official-document-drafting` | 建議——公文引用法規字號時查證 | 不需要 |
 | `legal-brainstorming` | 不需要（步驟五轉介 `legal-research` 時才需要） | 不需要 |
 | `legal-graph`、`legal-writing-humanizer` | 不需要（消費上游技能之已驗證產出） | 不需要 |
+
+**「未授權」等同「缺少」**：`dr-lawbot` 已註冊但 OAuth 未授權時，其工具不會出現在工具清單，效果與未安裝相同——本矩陣的降級行為照常適用（判例檢索退回關鍵字單軌，不 fail-closed）。差別僅在修復途徑：未授權走 §5.6，不走 §5.3。
 
 ### 5.3 安裝與註冊（獲使用者同意後執行）
 1.  **引導詢問**：主動告知使用者目前未配置對應 MCP 工具，並提議協助自動完成安裝與配置；未獲同意不得逕行執行安裝指令。
@@ -88,6 +96,7 @@
     | 其他平台 | 依該平台之 remote HTTP MCP 語法；鍵名（`type`／`transport`／`url`）以該平台文件為準 |
 
     *   **不支援 remote HTTP 的平台**：可改以 `npx mcp-remote https://tlr.dr-lawbot.com/mcp` 作為 stdio 橋接註冊（需 Node.js）；仍不可行時逕行優雅降級。
+    *   **⚠️ 註冊 ≠ 可用**：`dr-lawbot` 為需 **OAuth 授權**之 remote MCP，寫入設定檔只完成一半，必須再依 §5.6 完成授權才會出現在工具清單。此步驟**不得省略，也不得由 Agent 代為執行**（授權需開瀏覽器登入，屬互動流程）。
     *   **優雅降級**：使用者環境無法安裝 dr-lawbot 時，判例檢索退回 `taiwan-legal-db:search_judgments` 關鍵字單軌，一次性告知「語意檢索未啟用」，不得 fail-closed。
 
 ### 5.4 重啟硬閘門（Restart Gate）
@@ -98,7 +107,49 @@
 
 ### 5.5 安裝後煙霧測試（Smoke Test）
 重啟後的第一個法律任務開始前，先以一次廉價查詢確認連線：
-*   呼叫 `taiwan-legal-db:query_regulation` 查詢一條必定存在之條文（例：《中華民國民法》第 184 條）。
-*   回傳條文原文 → 安裝成功，正常進入技能流程。
-*   呼叫失敗或工具仍不存在 → 回到 §5.3 檢查 PATH 與註冊設定，不得憑記憶續答。
+*   **`taiwan-legal-db`**：呼叫 `query_regulation` 查詢一條必定存在之條文（例：《中華民國民法》第 184 條）。
+    *   回傳條文原文 → 安裝成功，正常進入技能流程。
+    *   呼叫失敗或工具仍不存在 → 回到 §5.3 檢查 PATH 與註冊設定，不得憑記憶續答。
+*   **`dr-lawbot`**（已完成 §5.6 授權者才需測）：呼叫 `search_bundle` 發一則簡短案情（例：「車禍過失傷害損害賠償」），確認回傳 `twlegalrag.bundle/v1` 且 `allowed_citations` 欄位存在。
+    *   工具仍不在清單 → 未重啟，或授權未完成，回 §5.6。
+    *   回傳 401／授權錯誤 → token 已失效，回 §5.6 重新授權。
+
+### 5.6 remote MCP 之 OAuth 授權與失效排查（`dr-lawbot`）
+
+`dr-lawbot` 為需授權之 remote MCP。**寫入設定檔只是註冊，取得 token 才是授權**；兩者任一缺少，工具都不會出現在清單中。
+
+#### 5.6.1 授權方式（必須由使用者在互動式環境操作）
+| 平台 | 授權途徑 |
+|---|---|
+| Claude Code | 於**互動式** session 輸入 `/mcp` → 選 `dr-lawbot` → `Authenticate`，開瀏覽器完成登入 |
+| 其他支援 remote MCP 之 agent | 依該平台之 MCP 授權介面（多為設定面板中的 Connect／Authenticate 按鈕） |
+
+*   **Agent 不得代為授權**：OAuth 需瀏覽器互動；非互動 session（含 `-p` 一次性執行、排程、subagent）無法完成。此時應**明確告知使用者需在互動式環境自行授權**，並先以關鍵字單軌續行。
+*   **不得向使用者索取授權碼、token 或 callback URL** 代填。
+
+#### 5.6.2 失效徵兆與三層診斷（依序，全部為唯讀檢查）
+token 會過期，徵兆是「設定沒動過，某天工具突然消失」。診斷順序：
+
+1.  **確認註冊還在**：設定檔（Claude Code 為 `~/.claude.json`）內是否仍有該伺服器條目。有 → 問題在授權，**不要重註冊**。
+2.  **確認伺服器活著**：對端點發一次未授權探測——
+    ```bash
+    curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST https://tlr.dr-lawbot.com/mcp \
+      -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream" \
+      -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"probe","version":"0"}}}' --max-time 20
+    ```
+    *   `HTTP 401` → **服務正常，純粹缺 token**（這是預期結果，因為探測本身沒帶憑證）。
+    *   連線逾時／5xx → 服務端問題，非本地設定，逕行優雅降級並告知使用者。
+3.  **檢查平台的授權狀態紀錄**（Claude Code）：
+    *   `~/.claude/mcp-needs-auth-cache.json`：**負向快取**。伺服器回過 401 後即被記入，後續 session 直接跳過連線、把工具排除在清單外。條目仍在 → 尚未授權成功。
+    *   `~/.claude/.credentials.json`：授權成功後會寫入該伺服器之 token（可 `grep dr-lawbot` 確認條目存在，**不得讀取或輸出 token 內容**）。
+
+#### 5.6.3 授權完成後仍看不到工具＝正常，需重啟
+授權結果寫在**磁碟**，工具清單是 session 啟動時建立的**記憶體快照**，兩者不會即時同步。故：
+
+*   憑證已寫入、負向快取條目已消失，但當前 session 的工具清單仍無該工具 → **這是預期行為**，依 §5.4 重啟硬閘門重啟 session 即可，**不需要再授權一次**。
+*   `/mcp reconnect` 類指令只重試連線，**缺 token 的情形重連仍會 401**，不能替代授權。
+
+#### 5.6.4 禁止的繞道
+*   **不得**以 `curl` 帶 token 直接呼叫 dr-lawbot HTTP API 取代 MCP 工具。理由：會跳過 `search_bundle` 的 `allowed_citations`／`unread_candidates` 白名單分流，等同拆除 §1 防幻覺閘門。
+*   授權未完成期間，一律走關鍵字單軌並依 §5.2 一次性告知，不得憑記憶補充判例。
 

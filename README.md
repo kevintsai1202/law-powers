@@ -59,8 +59,9 @@ npx skills add kevintsai1202/law-powers
 ### 安裝後驗證
 
 1. 註冊完成後**重啟 IDE／session**（新 MCP 工具重啟後才會載入）。
-2. 對 Agent 下一個簡單查詢確認連線，例如：「用 taiwan-legal-db 查《中華民國民法》第 184 條條文」——回得出條文原文即安裝成功。
-3. 依平台確認伺服器已連線：`claude mcp list`（Claude Code）、`gemini mcp list`（Gemini CLI）、`codex mcp list`（Codex CLI），其他平台檢查對應 MCP 設定檔或工具面板，確認 `taiwan-legal-db`、`dr-lawbot` 均已載入。
+2. `dr-lawbot` 另需完成 **OAuth 授權**（見下方「註冊 ≠ 可用」）。
+3. 對 Agent 下一個簡單查詢確認連線，例如：「用 taiwan-legal-db 查《中華民國民法》第 184 條條文」——回得出條文原文即安裝成功。
+4. 依平台確認伺服器已連線：`claude mcp list`（Claude Code）、`gemini mcp list`（Gemini CLI）、`codex mcp list`（Codex CLI），其他平台檢查對應 MCP 設定檔或工具面板，確認 `taiwan-legal-db`、`dr-lawbot` 均已載入。
 
 請確保您的環境中已安裝並登錄以下 MCP Server：
 *   **MCP 專案名稱**：`taiwan-legal-db`
@@ -112,6 +113,24 @@ npx skills add kevintsai1202/law-powers
       }
     }
     ```
+
+#### 註冊 ≠ 可用：dr-lawbot 需完成 OAuth 授權
+
+`dr-lawbot` 是需授權的 remote MCP。**寫入設定檔只完成註冊，還要取得 token 才會出現在工具清單**；兩者缺一，行為都與未安裝相同（技能會降級為關鍵字單軌）。
+
+*   **授權方式**：於**互動式** session 執行 `/mcp`（Claude Code）→ 選 `dr-lawbot` → `Authenticate`，開瀏覽器登入。其他平台於 MCP 設定面板按 Connect／Authenticate。非互動環境（`-p` 一次性執行、排程、subagent）無法完成授權。
+*   **常見狀況：token 過期**。徵兆是「設定沒動過，某天工具突然消失」。此時**不要重跑 `claude mcp add`**——重註冊補不上 token，要重新授權。
+*   **判斷是缺 token 還是服務掛了**：對端點發一次未授權探測，回 `HTTP 401` 代表服務正常、純缺 token；逾時或 5xx 才是服務端問題。
+
+    ```bash
+    curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST https://tlr.dr-lawbot.com/mcp \
+      -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream" \
+      -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"probe","version":"0"}}}'
+    ```
+
+*   **授權完成後仍看不到工具是正常的**：授權結果寫在磁碟，工具清單是 session 啟動時建立的記憶體快照，兩者不會即時同步——**重啟 session 即可，不需重新授權**。`/mcp reconnect` 只重試連線，缺 token 重連仍會 401，不能替代授權。
+
+> 完整排查流程（三層診斷、平台對照、禁止繞道）見各技能隨附的 `references/agents-rules.md` §5.6。
 
 ## 技能關係圖 (Skill Map)
 
@@ -244,6 +263,11 @@ flowchart TD
 3. SVG 圖離線可開、可直接列印附卷，與 3D 關係圖互補——關係圖呈全貌網絡，決策樹與因果鏈呈線性敘事。
 
 ## 變更歷程
+
+### 2026-08-06
+- 共用規則 `agents-rules` §5 補強 remote MCP 授權處理：§5.1 工具偵測改為**三態判定**（未註冊／已註冊但未授權／可用），各對應不同修復途徑，避免把「token 過期」誤判為「未安裝」而重跑註冊指令（重註冊補不上 token）；新增 §5.6 `dr-lawbot` OAuth 授權與失效排查（授權方式平台對照、401 探測與負向快取三層診斷、授權後須重啟、禁止以 curl 帶 token 繞過 MCP 白名單分流）；§5.5 煙霧測試增列 `dr-lawbot` 測法。
+- `legal-research` 步驟零依三態分流給建議；優雅降級明列「已註冊但未授權」等同缺少，並要求標註關鍵字單軌的召回風險。
+- README 前置配置新增「註冊 ≠ 可用」小節；宣傳頁同步。
 
 ### 2026-08-04
 - 新增 `lawbank-query-builder` 法源法律網檢索式產生器：行政函釋、法學論著、修法沿革等官方免費庫未涵蓋之需求，轉譯為法源布林檢索式（＆且、＋或、－不含）與分區入口，由使用者本人登入人工檢索；貼回結果依防幻覺紀律驗證標註（法條／判決回 `taiwan-legal-db` 比對、函釋標註未經交叉驗證並附主管機關免費替代來源）。技能鐵律：不自動連線、不索取或儲存帳號密碼、不將內容建庫（遵守法源會員條款對程式化擷取之禁令）。
